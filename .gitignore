@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 
-# custon
+# custom
 checkpoints/
 .vscode/
 logs/*
