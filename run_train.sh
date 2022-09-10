@@ -5,11 +5,11 @@ for loss_ratio in 1 2 3 5 8 10 0.1 0.2 0.5
 do
 #LOG_PATH=${2:- ""}
 #SAVE_DIR=${3:- ""}
-LOG_PATH=./logs/ttee_res15_30epoch_256d_2aug_2e-5lr_cased_0.1dropout_dropnull_${loss_ratio}loss.log
-SAVE_DIR=""
+TASK_NAME=ttee_res15_50epoch_256d_2aug_2e-5lr_cased_0.1dropout_dropnull_${loss_ratio}loss
+SAVE_DIR="./checkpoints"
+OUTPUT_DIR="./output"
 echo "loss_ratio: ${loss_ratio}"
-echo ${LOG_PATH}
-echo ${SAVE_DIR}
+echo ${TASK_NAME}
 
 python train.py \
     --do_train \
@@ -19,9 +19,10 @@ python train.py \
     --mask_sb \
     --dataset="res15" \
     --model_type="end_to_end" \
-    --log_path="${LOG_PATH}" \
+    --task_name="${TASK_NAME}" \
+    --output_dir="${OUTPUT_DIR}" \
     --save_dir="${SAVE_DIR}" \
-    --epochs=30 \
+    --epochs=50 \
     --dropout_rate=0.1 \
     --valid_freq=1 \
     --train_batch_size=16 \

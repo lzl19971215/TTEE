@@ -209,16 +209,18 @@ class Triplet(object):
         self.__prob = prob
 
     def __str__(self) -> str:
-        res = {
+        return json.dumps(self.json(), ensure_ascii=False)
+
+    def __repr__(self):
+        return self.__str__()
+    
+    def json(self):
+        return {
             'target': self.target,
             'aspect': self.aspect,
             'polarity': self.sentiment,
             'prob': self.prob
         }
-        return json.dumps(res, ensure_ascii=False)
-
-    def __repr__(self):
-        return self.__str__()
 
 
 def compute_f1(predicts, labels):
@@ -271,3 +273,15 @@ def quick_test(test_data, test_tokenizer, trainer, output_attentions=False):
             out)
 # if not output_attentions else (
 #        res.get_result(out, data, test_data), out)
+
+def save_predict(contexts, predicts, labels, file_path):
+    res_list = []
+    for t, p, l in zip(contexts, predicts, labels):
+        res = {
+            "context": t,
+            "predict": [each.json() for each in p],
+            "label":[each.json() for each in l]
+        }
+        res_list.append(res)
+    json.dump(res_list, open(file_path, "w"))
+

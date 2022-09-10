@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from multiprocessing import context
 import os
 import tensorflow as tf
 import logging
@@ -13,7 +14,7 @@ from datasets import ChineseDataset, EnglishDataset, TestTokenizer
 from label_mappings import *
 from transformers import AutoTokenizer
 from utils.data_utils import prepare_logger
-from utils.eval_utils import Result, Triplet, compute_f1
+from utils.eval_utils import Result, Triplet, compute_f1, save_predict
 from collections import namedtuple
 from tqdm import tqdm
 
@@ -31,9 +32,10 @@ def set_seed(seed=1):
 
 def arg_parse():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--task_name", help="训练任务名称", required=True, type=str)
     parser.add_argument("--init_model_dir", help="热启动模型路径", default="", type=str)
     parser.add_argument("--save_dir", help="模型保存路径", default="", type=str)
-    parser.add_argument("--log_path", help="日志保存路径", default="", type=str)
+    parser.add_argument("--output_dir", help="日志及测试结果保存路径", default="", type=str)
     parser.add_argument("--data_aug", help="数据增强策略", default=None, type=int)
     parser.add_argument("--dataset", help="数据集", default="res16", type=str)
     parser.add_argument("--train_batch_size", help="训练batch size", default=16, type=int)
@@ -43,7 +45,7 @@ def arg_parse():
     parser.add_argument("--lr", help="学习率", default=1e-5, type=float)
     parser.add_argument("--dropout_rate", help="失活率", default=0.1, type=float)
     parser.add_argument("--block_att_head_num", help="子模块自注意力头数", default=1, type=int)
-    parser.add_argument("--fuse_strategy", help="端到端的FuseNet融合策略", default="concat", type=str)
+    parser.add_argument("--fuse_strategy", help="端到端的FuseNet融合策略", default="update", type=str)
     parser.add_argument("--extra_attention", help="端到端FuseNet之后是否加self Attention", default=False, action="store_true")
     parser.add_argument("--d_block", help="子模块模型维度", default=256, type=int)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
@@ -224,7 +226,12 @@ class ABSATrainer(object):
                 self.logger.info(valid_loss_str)
                 self.logger.info(valid_acc_str)
                 if do_test:
-                    p, l = self.test(self.test_dataset, self.args.test_batch_size)
+                    t, p, l = self.test(self.test_dataset, self.args.test_batch_size)
+                    output_file_path = os.path.join(self.args.output_dir, self.args.task_name, f"epoch{epoch}_{args.dataset}.json") if self.args.output_dir else None
+                    # save test result
+                    if output_file_path is not None:
+                        save_predict(t, p, l, output_file_path)
+
                     precision, recall, f1 = compute_f1(p, l)
                     self.logger.info("Precision %.3f Recall %.3f F1 %.3f" % (precision, recall, f1))
                     if f1 >= best_f1:
@@ -239,7 +246,6 @@ class ABSATrainer(object):
                             checkpoint_manager.save(epoch)
                             config = self.model.get_config()
                             json.dump(config, open(os.path.join(save_dir, "model_config.json"), "w"))
-
                 # save
         # if save_dir:
         #     if not os.path.exists(save_dir):
@@ -317,12 +323,14 @@ class ABSATrainer(object):
         ).batch(batch_size)
         test_data_loader = test_string_loader.map(test_dataset.wrap_map)
 
+        contexts = []
         parse_result = []
         true_result = []
         num_batch = len(test_dataset) // batch_size + 1
         for idx, (raw_strings, inputs) in tqdm(enumerate(zip(test_string_loader, test_data_loader)), total=num_batch):
             text, triplets = raw_strings[0].numpy(), raw_strings[1].numpy()
             text = [each.decode('utf-8') for each in text]
+            contexts.extend(text)
             triplets = [each.decode('utf-8') for each in triplets]
             for t in triplets:
                 one_label = []
@@ -352,7 +360,7 @@ class ABSATrainer(object):
                                                           result_type=self.model_type)
             batch_res = [set(res) for res in batch_res]
             parse_result.extend(batch_res)
-        return parse_result, true_result
+        return contexts, parse_result, true_result
 
 
 def prepare_modules(
@@ -470,8 +478,12 @@ if __name__ == '__main__':
     learning_rate = args.lr
 
     checkpoint_path = args.init_model_dir if args.init_model_dir else None
-    log_path = args.log_path if args.log_path.strip() else None
-    save_dir = args.save_dir if args.save_dir.strip() else None
+    task_output_dir = os.path.join(args.output_dir, args.task_name)
+    if args.output_dir.strip() and not os.path.exists(task_output_dir):
+        print("Create output dir: {}".format(task_output_dir))
+        os.makedirs(task_output_dir)
+    log_path = os.path.join(task_output_dir,"train.log") if args.output_dir.strip() else None
+    save_dir = os.path.join(args.save_dir, args.task_name)if args.save_dir.strip() else None
     # save_dir = "./checkpoint/end_2_end"
     # checkpoint_path = "./checkpoint/end_2_end"
     train_data_path, test_data_path = None, None
