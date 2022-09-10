@@ -595,17 +595,17 @@ class TestTokenizer(object):
 
 
 if __name__ == '__main__':
-    file_path = 'data/semeval2016/phone_chinese/labeled_phone.csv'
-    tokenizer = AutoTokenizer.from_pretrained('bert-base-chinese', cache_dir='/lzl/models/bert-base-chinese')
+    file_path = 'data/semeval2015/ABSA15_Restaurants_Test.xml'
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-cased', cache_dir='bert_models/bert-base-cased')
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    dataset = ChineseDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
+    dataset = EnglishDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
     ds = tf.data.Dataset.from_generator(
         dataset.generate_string_sample,
         output_types=(tf.string, tf.string)
     )
-    bd = ds.batch(batch_size=8).map(dataset.wrap_map)
-    # for a, b in ds.batch(8):
-    # print(dataset.map_batch_string_to_tensor_end_to_end(a, b))
+    # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
+    for a, b in ds.batch(8):
+        dataset.map_batch_string_to_tensor_end_to_end(a, b)
     # input_ids = tokenizer(SENTENCE_B['text'], return_offsets_mapping=True, add_special_tokens=False)['input_ids']
     # tt = tokenizer.convert_ids_to_tokens(input_ids)
     #

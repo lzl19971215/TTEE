@@ -7023,7 +7023,6 @@
                 <Opinions>
                     <Opinion target="salmon" category="FOOD#QUALITY" polarity="negative" from="38" to="44"/>
                     <Opinion target="chicken" category="FOOD#QUALITY" polarity="positive" from="78" to="85"/>
-                    <Opinion target="servings for main entree" category="FOOD#GENERAL" polarity="negative" from="6" to="30"/>
                 </Opinions>
             </sentence>
             <sentence id="521916:2">

@@ -1,12 +1,12 @@
 export CUDA_VISIBLE_DEVICES=${1:-0}
 #export TF_GPU_ALLOCATOR="cuda_malloc_async"
 
-for loss_ratio in 3 4
+for loss_ratio in 1 2 3 5 8 10 0.1 0.2 0.5 
 do
 #LOG_PATH=${2:- ""}
 #SAVE_DIR=${3:- ""}
-LOG_PATH=./logs/v2_e2e_70_2_layer_pool_256_h_aug2_2e-5_cased_dropout_0.1_drop_null_${loss_ratio}loss.log
-SAVE_DIR=checkpoint/v2_e2e_70_2_layer_pool_256_h_aug2_2e-5_cased_dropout_0.1_drop_null_${loss_ratio}loss
+LOG_PATH=./logs/ttee_res15_30epoch_256d_2aug_2e-5lr_cased_0.1dropout_dropnull_${loss_ratio}loss.log
+SAVE_DIR=""
 echo "loss_ratio: ${loss_ratio}"
 echo ${LOG_PATH}
 echo ${SAVE_DIR}
@@ -17,10 +17,11 @@ python train.py \
     --do_test \
     --cased \
     --mask_sb \
+    --dataset="res15" \
     --model_type="end_to_end" \
     --log_path="${LOG_PATH}" \
     --save_dir="${SAVE_DIR}" \
-    --epochs=70 \
+    --epochs=30 \
     --dropout_rate=0.1 \
     --valid_freq=1 \
     --train_batch_size=16 \

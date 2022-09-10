@@ -35,6 +35,7 @@ def arg_parse():
     parser.add_argument("--save_dir", help="模型保存路径", default="", type=str)
     parser.add_argument("--log_path", help="日志保存路径", default="", type=str)
     parser.add_argument("--data_aug", help="数据增强策略", default=None, type=int)
+    parser.add_argument("--dataset", help="数据集", default="res16", type=str)
     parser.add_argument("--train_batch_size", help="训练batch size", default=16, type=int)
     parser.add_argument("--test_batch_size", help="测试batch size", default=32, type=int)
     parser.add_argument("--epochs", help="训练epoch数量", default=30, type=int)
@@ -46,7 +47,7 @@ def arg_parse():
     parser.add_argument("--extra_attention", help="端到端FuseNet之后是否加self Attention", default=False, action="store_true")
     parser.add_argument("--d_block", help="子模块模型维度", default=256, type=int)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
-    parser.add_argument("--mask_sb", help="单塔模型attention mask，不看sentence b", default=False, action="store_true")
+    parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
     parser.add_argument("--cased", help="模型是否区分大小写", default=True, action="store_true")
     parser.add_argument("--do_train", help="是否进行训练", default=False, action="store_true")
     parser.add_argument("--do_valid", help="是否进行验证", default=False, action="store_true")
@@ -475,8 +476,12 @@ if __name__ == '__main__':
     # checkpoint_path = "./checkpoint/end_2_end"
     train_data_path, test_data_path = None, None
     if language == "en":
-        train_data_path = "./data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml"
-        test_data_path = "./data/semeval2016/EN_REST_SB1_TEST_LABELED.xml"
+        if args.dataset == "res16":
+            train_data_path = "./data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml"
+            test_data_path = "./data/semeval2016/EN_REST_SB1_TEST_LABELED.xml"
+        elif args.dataset == "res15":
+            train_data_path = "./data/semeval2015/ABSA-15_Restaurants_Train_Final.xml"
+            test_data_path = "./data/semeval2015/ABSA15_Restaurants_Test.xml"
     else:
         train_data_path = "./data/semeval2016/phone_chinese/labeled_phone.csv"
     # tokenizer = AutoTokenizer.from_pretrained(config['init_bert_model'], cache_dir=config['cache_dir'])
