@@ -84,12 +84,14 @@ class MultiTaskEvaluatior(object):
             df.to_csv(os.path.join(self.output_dir, "eval_results.csv"))
 
         print(df)
+        print()
+        return df
 
     def full_evaluate(self, save=False):
         for epoch in tqdm(range(len(self.output_results))):
             self.eval_epoch(epoch)
             self.reset()
-        self.display(save=save)
+        return self.display(save=save)
 
 
 TASK_CONFIG = {
@@ -102,13 +104,41 @@ TASK_CONFIG = {
 }
 
 if __name__ == "__main__":
+    res15_results = []
+    res16_results = []
     for exp in os.listdir("output"):
         print(exp)
+        if "eval_results.csv" in os.listdir(f"output/{exp}"):
+            df = pd.read_csv(f"output/{exp}/eval_results.csv", index_col="Unnamed: 0")
+            print(df)
+            print()
+            res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
+            continue
         try:
-            evaluator = MultiTaskEvaluatior(
-                TASK_CONFIG, f"output/{exp}")
-            evaluator.full_evaluate(True)
+            evaluator = MultiTaskEvaluatior(TASK_CONFIG, f"output/{exp}")
+            df = evaluator.full_evaluate(True)
+            res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
         except:
             print("exp result not complete!")
+            print()
             continue
+    
+
+
+    def get_best_score_each_task(results):
+        res = {"AS":[], "TS":[], "TA":[], "A":[], "T":[], "TAS":[]}
+        for exp, df in results:
+            for task in res:
+                res[task].append((df.loc[task]["f1"], exp))
+        for k,v in res.items():
+            v.sort(key=lambda x:x[0], reverse=True)
+            print(f"{k}: Best f1:{v[0][0]}; Experiment:{v[0][1]}")
+        return res
+    print("Res15:")
+    res15_scores = get_best_score_each_task(res15_results)
+    print("\nRes16:")
+    res16_scores = get_best_score_each_task(res16_results)
+
+
+
         
