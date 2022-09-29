@@ -18,13 +18,13 @@ class Result(object):
         self.result = []
         self.tokenizer = tokenizer
 
-    def get_result(self, model_output, tokenized_texts, origin_texts, language, result_type="end_to_end"):
+    def get_result(self, model_output, tokenized_texts, origin_texts, language, tagging_schema="BIOES", result_type="end_to_end"):
         if result_type == "end_to_end":
-            return self.get_result_end_to_end(model_output, tokenized_texts, origin_texts, language)
+            return self.get_result_end_to_end(model_output, tokenized_texts, origin_texts, language, tagging_schema=tagging_schema)
         else:
             return self.get_result_pipeline(model_output, tokenized_texts, origin_texts, language)
 
-    def get_result_end_to_end(self, model_output, tokenized_texts, origin_texts, language):
+    def get_result_end_to_end(self, model_output, tokenized_texts, origin_texts, language, tagging_schema="BIOES"):
         if language == "en":
             label_category_mapping = LABEL_CATEGORY_MAPPING
             label_sentiment_mapping = LABEL_SENTIMENT_MAPPING
@@ -49,7 +49,7 @@ class Result(object):
             decoded_sequence = batch_decoded_sequence[i]
             output_prob = batch_output_prob[i]
             cls_predict = batch_cls_predict[i]
-            decoded_dict = decode_ner_output(decoded_sequence)
+            decoded_dict = decode_ner_output(decoded_sequence) if tagging_schema == "BIOES" else decode_ner_BIO_output(decoded_sequence)
             offset_mapping = tokenized_texts['offset_mapping'][i]
             origin_text = origin_texts[i]
             for asp_senti_idx in range(num_asp_senti_pairs):
@@ -152,6 +152,40 @@ def decode_ner_output(decoded_sequence):
             else:  # E
                 if have_prefix:
                     target_lists.append((entity_start, tag_idx + 1))
+                    have_prefix = False
+
+        if have_prefix:
+            target_lists.append((entity_start, tag_idx + 1))
+        decoded_result[asp_senti_idx] = target_lists
+    return decoded_result
+
+def decode_ner_BIO_output(decoded_sequence):
+    """
+
+    :param decoded_sequence: (num_aspect_senti_pairs, seq_len)
+    :param tokenized_text: (seq, len)
+    :return: dict(asp_senti_idx: [start, end] list)
+    """
+    decoded_result = {}
+    for asp_senti_idx, tag_sequence in enumerate(decoded_sequence):
+        target_lists = []
+        have_prefix = False
+        entity_start = 0
+        tag_idx = 0
+        for tag_idx, tag in enumerate(tag_sequence):
+            if tag == NER_BIO_MAPPING["B"]:
+                if have_prefix:
+                    target_lists.append((entity_start, tag_idx))
+                have_prefix = True
+                entity_start = tag_idx
+            elif tag == NER_BIO_MAPPING["I"]:
+                #  Model predict "III" instead of "BII"
+                if not have_prefix:
+                    entity_start = tag_idx
+                    have_prefix = True
+            else: # tag == NER_BIO_MAPPING["O"]
+                if have_prefix:
+                    target_lists.append((entity_start, tag_idx))
                     have_prefix = False
 
         if have_prefix:

@@ -6,7 +6,6 @@ from transformers import TFAutoModel, AutoTokenizer
 from tensorflow.keras.layers import Layer
 from tensorflow.keras import layers
 from tensorflow_addons.text import crf_log_likelihood
-from label_mappings import NER_LABEL_MAPPING
 from transformers.models.bert.modeling_tf_bert import TFBertAttention
 from transformers import BertConfig
 
@@ -158,6 +157,7 @@ class End2EndAspectSentimentModel(Model):
             subblock_head_num=1,
             cache_dir=None,
             fuse_strategy='concat',
+            tagging_schema="BIOES",
             extra_attention=True,
             dropout=0.1,
             loss_ratio=1.0
@@ -168,7 +168,8 @@ class End2EndAspectSentimentModel(Model):
         self.bert = TFAutoModel.from_pretrained(init_bert_model, cache_dir=cache_dir)
         self.tokenizer = AutoTokenizer.from_pretrained(init_bert_model, cache_dir=cache_dir)
         self.fuse_net = FuseNet(fuse_strategy, dropout=dropout)
-        self.te_block = TargetExtractionBlock(hidden_size=subblock_hidden_size, dropout=0.3)
+        n_te_classes = 5 if tagging_schema == "BIOES" else 3
+        self.te_block = TargetExtractionBlock(hidden_size=subblock_hidden_size, num_classes=n_te_classes, dropout=dropout)
         if fuse_strategy == 'concat':
             attention_hidden_size = self.bert.config.hidden_size * 2
         else:
@@ -195,6 +196,7 @@ class End2EndAspectSentimentModel(Model):
             "subblock_head_num": subblock_head_num,
             "cache_dir": cache_dir,
             "fuse_strategy": fuse_strategy,
+            "tagging_schema": tagging_schema,
             "extra_attention": extra_attention,
             "dropout": dropout,
             "loss_ratio": loss_ratio

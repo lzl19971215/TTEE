@@ -10,7 +10,7 @@ import numpy as np
 from models.single_tower_model import AspectSentimentModel
 from models.double_tower_model import DoubleTowerAspectSentimentModel
 from models.end_to_end_model import End2EndAspectSentimentModel
-from datasets import ChineseDataset, EnglishDataset, TestTokenizer
+from datasets import ChineseDataset, EnglishDataset
 from label_mappings import *
 from transformers import AutoTokenizer
 from utils.data_utils import prepare_logger
@@ -46,6 +46,7 @@ def arg_parse():
     parser.add_argument("--dropout_rate", help="失活率", default=0.1, type=float)
     parser.add_argument("--block_att_head_num", help="子模块自注意力头数", default=1, type=int)
     parser.add_argument("--fuse_strategy", help="端到端的FuseNet融合策略", default="update", type=str)
+    parser.add_argument("--schema", help="NER标注规则:BIOES/BIO", default="BIOES", type=str)    
     parser.add_argument("--extra_attention", help="端到端FuseNet之后是否加self Attention", default=False, action="store_true")
     parser.add_argument("--d_block", help="子模块模型维度", default=256, type=int)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
@@ -357,7 +358,7 @@ class ABSATrainer(object):
 
             tokenized_texts = self.tokenizer(text, padding='longest', return_offsets_mapping=True)
             batch_res = Result(self.tokenizer).get_result(model_out, tokenized_texts, text, language=self.language,
-                                                          result_type=self.model_type)
+                                                          result_type=self.model_type, tagging_schema=self.args.schema)
             batch_res = [set(res) for res in batch_res]
             parse_result.extend(batch_res)
         return contexts, parse_result, true_result
@@ -405,6 +406,7 @@ def prepare_modules(
         tokenizer=tokenizer,
         sentence_b=sentence_b,
         mask_sb=mask_sb,
+        tagging_schema=config["tagging_schema"],
         model_type=model_type,
         drop_null=drop_null_data
     )
@@ -415,6 +417,7 @@ def prepare_modules(
             tokenizer=tokenizer,
             sentence_b=sentence_b,
             mask_sb=mask_sb,
+            tagging_schema=config["tagging_schema"],
             model_type=model_type,
             drop_null=drop_null_data
         )
@@ -469,8 +472,9 @@ if __name__ == '__main__':
         "subblock_head_num": args.block_att_head_num,
         "cache_dir": cache_dir,
         "fuse_strategy": args.fuse_strategy,
-        "dropout": args.dropout_rate,
+        "tagging_schema": args.schema,
         "extra_attention": args.extra_attention,
+        "dropout": args.dropout_rate,
         "loss_ratio": args.loss_ratio
     }
     model_type = args.model_type

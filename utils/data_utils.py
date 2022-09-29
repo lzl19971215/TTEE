@@ -191,3 +191,44 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end(offsets_mapping, tri
 
     final_result = [ner_label, cls_label]
     return final_result
+
+
+
+def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping, triplets, language="en"):
+    if language == "en":
+        category_label_mapping = CATEGORY_LABEL_MAPPING
+        sentiment_label_mapping = SENTIMENT_LABEL_MAPPING
+
+    else:
+        category_label_mapping = CATEGORY_LABEL_MAPPING_CHINESE
+        sentiment_label_mapping = SENTIMENT_LABEL_MAPPING_CHINESE
+
+    num_aspects = len(category_label_mapping)
+    num_sentiments = len(sentiment_label_mapping)
+    ner_label = [[NER_BIO_MAPPING['O']] * len(offsets_mapping) for _ in range(num_aspects * num_sentiments)]
+    cls_label = [0] * (num_aspects * num_sentiments)
+    if triplets:
+        for triplet in triplets:
+            aspect_idx = category_label_mapping[triplet['category']]
+            senti_idx = sentiment_label_mapping[triplet['polarity']]
+            aspect_senti_idx = aspect_idx * num_sentiments + senti_idx
+            start, end = int(triplet['from']), int(triplet['to'])
+            new_start, new_end = infer_tokenized_label(start, end, offsets_mapping)
+
+            # create label
+            cls_label[aspect_senti_idx] = 1
+            if new_start == 0 and new_end == 1:
+                continue
+            else:
+                if new_start + 1 == new_end:
+                    assert ner_label[aspect_senti_idx][new_start] == NER_BIO_MAPPING['O']
+                    ner_label[aspect_senti_idx][new_start] = NER_BIO_MAPPING['B']
+                else:
+                    assert (ner_label[aspect_senti_idx][new_start: new_end] == [NER_BIO_MAPPING['O']] * (
+                            new_end - new_start))
+                    ner_label[aspect_senti_idx][new_start] = NER_BIO_MAPPING['B']
+                    ner_label[aspect_senti_idx][new_start + 1: new_end] = [NER_BIO_MAPPING['I']] * (
+                            new_end - new_start - 1)
+
+    final_result = [ner_label, cls_label]
+    return final_result

@@ -7,6 +7,12 @@ NER_LABEL_MAPPING = {
     'S': 4
 }
 
+NER_BIO_MAPPING = {
+    'B': 0,
+    'I': 1,
+    'O': 2
+}
+
 CATEGORY_LABEL_MAPPING = {
     'AMBIENCE#GENERAL': 0,
     'DRINKS#PRICES': 1,

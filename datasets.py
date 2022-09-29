@@ -5,20 +5,21 @@ import pandas as pd
 from xml.etree import ElementTree
 from transformers import AutoTokenizer
 from utils.data_utils import convert_batch_label_to_batch_tokenized_label, \
-    convert_batch_label_to_batch_tokenized_label_end_to_end
+    convert_batch_label_to_batch_tokenized_label_end_to_end, convert_batch_label_to_batch_tokenized_label_end_to_end_BIO
 from label_mappings import SENTENCE_B, ASPECT_SENTENCE, ASPECT_SENTENCE_CHINESE
 from itertools import chain
 
 
 class BaseSemEvalDataSet(object):
 
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", drop_null=False):
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", tagging_schema="BIOES", drop_null=False):
         self.tokenizer = tokenizer
         self.sentence_b = sentence_b
         # self.tree = ElementTree.parse(file_path)
         # self.root = self.tree.getroot()
         self.file_path = file_path
         self.drop_null = drop_null
+        self.tagging_schema = tagging_schema
         self.string_sentences = self.xml2list()
         if self.drop_null:
             self.string_sentences = [each for each in self.string_sentences if eval(each[1])]
@@ -243,10 +244,11 @@ class BaseSemEvalDataSet(object):
         max_len = len(tokenized_texts['input_ids'][0])
         ner_labels = []
         cls_labels = []
+        raw_label_to_tokenized_label_func = convert_batch_label_to_batch_tokenized_label_end_to_end if self.tagging_schema == "BIOES" else convert_batch_label_to_batch_tokenized_label_end_to_end_BIO 
         for i in range(batch_size):
             triplet = json.loads(triplet_tensor[i].numpy())
             offsets_mapping = tokenized_texts['offset_mapping'][i]
-            ner_label, cls_label = convert_batch_label_to_batch_tokenized_label_end_to_end(
+            ner_label, cls_label = raw_label_to_tokenized_label_func(
                 offsets_mapping=offsets_mapping,
                 triplets=triplet,
                 language=self.language
@@ -354,8 +356,8 @@ class BaseSemEvalDataSet(object):
 
 
 class EnglishDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="end_to_end", drop_null=False):
-        super(EnglishDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, drop_null)
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
+        super(EnglishDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
         self.language = "en"
 
     def xml2list(self):
@@ -386,8 +388,8 @@ class EnglishDataset(BaseSemEvalDataSet):
 
 
 class ChineseDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="end_to_end", drop_null=False):
-        super(ChineseDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, drop_null)
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
+        super(ChineseDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
         self.language = "cn"
 
     def xml2list(self):
