@@ -51,7 +51,7 @@ def arg_parse():
     parser.add_argument("--d_block", help="子模块模型维度", default=256, type=int)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
     parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
-    parser.add_argument("--cased", help="模型是否区分大小写", default=True, action="store_true")
+    parser.add_argument("--cased", help="模型是否区分大小写", default=False, action="store_true")
     parser.add_argument("--do_train", help="是否进行训练", default=False, action="store_true")
     parser.add_argument("--do_valid", help="是否进行验证", default=False, action="store_true")
     parser.add_argument("--do_test", help="是否进行测试", default=False, action="store_true")

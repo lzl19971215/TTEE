@@ -108,12 +108,12 @@ if __name__ == "__main__":
     res16_results = []
     for exp in os.listdir("output"):
         print(exp)
-        if "eval_results.csv" in os.listdir(f"output/{exp}"):
-            df = pd.read_csv(f"output/{exp}/eval_results.csv", index_col="Unnamed: 0")
-            print(df)
-            print()
-            res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
-            continue
+        # if "eval_results.csv" in os.listdir(f"output/{exp}"):
+        #     df = pd.read_csv(f"output/{exp}/eval_results.csv", index_col="Unnamed: 0")
+        #     print(df)
+        #     print()
+        #     res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
+        #     continue
         try:
             evaluator = MultiTaskEvaluatior(TASK_CONFIG, f"output/{exp}")
             df = evaluator.full_evaluate(True)
