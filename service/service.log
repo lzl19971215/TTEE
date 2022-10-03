@@ -1,0 +1,171 @@
+[WARNING] 2022-03-21 21:08:39,692 [_internal.py:  225]:	 * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+[INFO] 2022-03-21 21:08:39,692 [_internal.py:  225]:	 * Running on http://192.168.113.164:3030/ (Press CTRL+C to quit)
+[INFO] 2022-03-21 21:08:50,102 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:08:53,999 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:08:54,006 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:08:54] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:08:55,773 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:08:56,052 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:08:56,056 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:08:56] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:09:01,275 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-21 21:09:04,786 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:09:04,788 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:09:04] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:09:07,220 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-21 21:09:07,505 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:09:07,507 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:09:07] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:13:08,028 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-21 21:13:08,640 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:13:08,642 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:13:08] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:15:21,223 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:15:24,813 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:15:24,817 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:15:24] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:15:26,598 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:15:26,939 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:15:26,943 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:15:26] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:15:31,673 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:15:32,027 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:15:32,031 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:15:32] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:15:38,381 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:15:38,822 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:15:38,826 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:15:38] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:16:05,555 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:16:05,970 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:16:05,974 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:16:05] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:22:04,731 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:22:08,414 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:22:08,420 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:22:08] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:30:24,571 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:30:24,926 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:30:24,930 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:30:24] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:31:33,678 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:31:34,024 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:31:34,028 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:31:34] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:33:08,833 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:33:09,176 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:33:09,180 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:33:09] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:33:27,198 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:33:27,521 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:33:27,524 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:33:27] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:33:43,499 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:33:43,860 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:33:43,864 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:33:43] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:35:01,154 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:35:01,488 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:35:01,492 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:35:01] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:35:30,529 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:35:30,845 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:35:30,849 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:35:30] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:36:06,860 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:36:10,481 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:36:10,488 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:36:10] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:36:29,237 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:36:29,586 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:36:29,590 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:36:29] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:36:55,329 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:36:55,715 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:36:55,718 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:36:55] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:37:02,624 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:37:02,948 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:37:02,951 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:37:02] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:37:48,596 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:37:48,929 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:37:48,934 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:37:48] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:37:56,274 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:37:56,611 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:37:56,615 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:37:56] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:38:28,509 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:38:28,860 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:38:28,864 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:38:28] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:39:29,763 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:39:30,092 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:39:30,096 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:39:30] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:39:38,292 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:39:38,708 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:39:38,712 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:39:38] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:39:50,570 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "language": "cn", "output_attentions": true}'
+[INFO] 2022-03-21 21:39:50,918 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:39:50,922 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:39:50] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:40:23,462 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:40:24,032 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:40:24,036 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:40:24] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:41:05,553 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:41:05,843 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:41:05,846 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:41:05] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:41:22,168 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:41:22,450 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:41:22,453 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:41:22] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:41:51,178 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:41:51,458 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:41:51,462 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:41:51] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:42:06,833 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:42:07,120 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:42:07,123 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:42:07] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:42:20,086 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:42:20,382 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:42:20,385 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:42:20] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:43:02,342 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:43:02,628 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:43:02,631 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:43:02] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:44:00,445 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:44:00,731 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:44:00,735 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:44:00] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:44:50,349 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:44:50,618 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:44:50,621 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:44:50] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:44:53,092 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:44:53,365 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:44:53,369 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:44:53] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:45:16,316 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:45:16,576 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:45:16,579 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:45:16] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:45:53,633 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:45:53,911 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:45:53,914 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:45:53] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:46:03,944 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:46:04,318 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:46:04,321 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:46:04] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:46:10,102 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:46:10,490 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:46:10,494 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:46:10] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:46:37,025 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:46:37,433 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:46:37,437 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:46:37] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:46:54,487 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": true}'
+[INFO] 2022-03-21 21:46:54,774 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:46:54,778 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:46:54] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:52:11,862 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-21 21:52:12,137 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:52:12,140 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:52:12] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:53:01,182 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "output_attentions": true, "language": "cn"}'
+[INFO] 2022-03-21 21:53:01,690 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:53:01,694 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:53:01] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:53:18,250 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "output_attentions": true, "language": "cn"}'
+[INFO] 2022-03-21 21:53:18,593 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:53:18,597 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:53:18] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:54:04,622 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-21 21:54:04,912 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:54:04,913 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:54:04] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:56:21,597 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-21 21:56:21,865 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:56:21,866 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:56:21] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-21 21:56:34,729 [absa_service.py:   24]:	Get data: b'{"text": ["\\u5c4f\\u5e55\\u8d28\\u91cf\\u4e0d\\u9519\\uff0c\\u5f88\\u6297\\u6454\\uff1b\\u7535\\u6c60\\u7eed\\u822a\\u5f88\\u597d\\uff0c\\u53ef\\u4ee5\\u5f85\\u673a\\u4e24\\u5929\\uff1b\\u76f8\\u673a\\u4e0d\\u662f\\u5f88\\u7ed9\\u529b\\uff0c\\u62cd\\u51fa\\u6765\\u6709\\u70b9\\u6a21\\u7cca"], "output_attentions": true, "language": "cn"}'
+[INFO] 2022-03-21 21:56:35,071 [absa_service.py:   56]:	Success
+[INFO] 2022-03-21 21:56:35,077 [_internal.py:  225]:	127.0.0.1 - - [21/Mar/2022 21:56:35] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-22 19:19:42,155 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-22 19:19:42,737 [absa_service.py:   56]:	Success
+[INFO] 2022-03-22 19:19:42,739 [_internal.py:  225]:	127.0.0.1 - - [22/Mar/2022 19:19:42] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-22 19:19:44,984 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-22 19:19:45,258 [absa_service.py:   56]:	Success
+[INFO] 2022-03-22 19:19:45,259 [_internal.py:  225]:	127.0.0.1 - - [22/Mar/2022 19:19:45] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-22 19:19:46,912 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-22 19:19:47,202 [absa_service.py:   56]:	Success
+[INFO] 2022-03-22 19:19:47,203 [_internal.py:  225]:	127.0.0.1 - - [22/Mar/2022 19:19:47] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-22 19:49:08,840 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-22 19:49:09,409 [absa_service.py:   56]:	Success
+[INFO] 2022-03-22 19:49:09,410 [_internal.py:  225]:	127.0.0.1 - - [22/Mar/2022 19:49:09] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-22 19:51:45,029 [absa_service.py:   24]:	Get data: b'{"text": ["The apple juice is good, i like it"], "language": "en", "output_attentions": false}'
+[INFO] 2022-03-22 19:51:45,334 [absa_service.py:   56]:	Success
+[INFO] 2022-03-22 19:51:45,335 [_internal.py:  225]:	127.0.0.1 - - [22/Mar/2022 19:51:45] "POST /absa_service HTTP/1.1" 200 -
+[INFO] 2022-03-22 20:14:42,268 [absa_service.py:   24]:	Get data: b'{"text": ["Comfortable sofa and chairs, good hamburgers. But the waiter is very rude."], "output_attentions": true, "language": "en"}'
+[INFO] 2022-03-22 20:14:42,569 [absa_service.py:   56]:	Success
+[INFO] 2022-03-22 20:14:42,574 [_internal.py:  225]:	127.0.0.1 - - [22/Mar/2022 20:14:42] "POST /absa_service HTTP/1.1" 200 -

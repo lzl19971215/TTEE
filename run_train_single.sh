@@ -2,7 +2,7 @@ export CUDA_VISIBLE_DEVICES=${1:-0}
 #export TF_GPU_ALLOCATOR="cuda_malloc_async"
 
 
-TASK_NAME=BIO_test
+TASK_NAME=ttee_res15_100epoch_nod_tanh_2aug_2e-5lr_uncased_0.3dropout_dropnull_1loss_BIO
 SAVE_DIR=""
 OUTPUT_DIR="./output"
 echo ${TASK_NAME}
@@ -11,7 +11,6 @@ python train.py \
     --do_train \
     --do_valid \
     --do_test \
-    --cased \
     --mask_sb \
     --dataset="res15" \
     --model_type="end_to_end" \
@@ -19,12 +18,11 @@ python train.py \
     --output_dir="${OUTPUT_DIR}" \
     --save_dir="${SAVE_DIR}" \
     --epochs=100 \
-    --dropout_rate=0.2 \
-    --valid_freq=1 \
+    --dropout_rate=0.3 \
+    --valid_freq=5 \
     --train_batch_size=16 \
     --test_batch_size=32 \
     --lr=2e-5 \
-    --d_block=64 \
     --fuse_strategy="update" \
     --schema="BIO" \
     --block_att_head_num=1 \

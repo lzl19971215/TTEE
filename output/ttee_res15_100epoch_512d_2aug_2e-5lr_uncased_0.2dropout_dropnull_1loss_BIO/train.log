@@ -1,0 +1,805 @@
+[INFO] 2022-10-01 09:11:30,594 [    train.py:  509]:	Namespace(block_att_head_num=1, cased=False, d_block=512, data_aug=2, dataset='res15', do_test=True, do_train=True, do_valid=True, drop_null_data=True, dropout_rate=0.2, epochs=100, extra_attention=True, fuse_strategy='update', init_model_dir='', language='en', loss_ratio=1.0, lr=2e-05, mask_sb=True, model_type='end_to_end', output_dir='./output', save_dir='', schema='BIO', task_name='ttee_res15_100epoch_512d_2aug_2e-5lr_uncased_0.2dropout_dropnull_1loss_BIO', test_batch_size=32, train_batch_size=16, valid_freq=1)
+[INFO] 2022-10-01 09:11:42,406 [    train.py:  119]:	{'init_bert_model': 'bert-base-uncased', 'sentence_b': DictWrapper({'texts': ListWrapper(['general of ambience', 'price of drinks', 'quality of drinks', 'style options of drinks', 'prices of food', 'quality of food', 'style options of food', 'general of location', 'general of restaurant', 'miscellaneous of restaurant', 'prices of restaurant', 'general of service']), 'sentiments': ListWrapper(['negative', 'neutral', 'positive'])}), 'num_sentiment_classes': 3, 'subblock_hidden_size': 512, 'subblock_head_num': 1, 'cache_dir': 'bert_models/bert-base-uncased', 'fuse_strategy': 'update', 'tagging_schema': 'BIO', 'extra_attention': True, 'dropout': 0.2, 'loss_ratio': 1.0}
+[INFO] 2022-10-01 09:11:42,406 [    train.py:  121]:	Number of Train Sentence: 1120
+[INFO] 2022-10-01 09:11:42,416 [    train.py:  526]:	Data augment: Merge 2 train data together
+[INFO] 2022-10-01 09:12:56,857 [    train.py:  185]:	Epoch 1: 
+[INFO] 2022-10-01 09:12:56,858 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:12:56,865 [    train.py:  198]:	Loss 0.3288, ('Ner Loss', 0.07851885259151459),  ('CLS Classification Loss', 0.2502939701080322)
+[INFO] 2022-10-01 09:12:56,865 [    train.py:  208]:	('Ner Acc', 0.971114993095398),  ('CLS Classification Acc', 0.9340029954910278)
+[INFO] 2022-10-01 09:13:02,340 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:13:02,342 [    train.py:  227]:	Loss 0.1856, ('Ner Loss', 0.020750219),  ('CLS Classification Loss', 0.16480899)
+[INFO] 2022-10-01 09:13:02,342 [    train.py:  228]:	('Ner Acc', 0.9971178), ('CLS Classification Acc', 0.962567)
+[INFO] 2022-10-01 09:13:14,307 [    train.py:  237]:	Precision 0.000 Recall 0.000 F1 0.000
+[INFO] 2022-10-01 09:13:56,546 [    train.py:  185]:	Epoch 2: 
+[INFO] 2022-10-01 09:13:56,547 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:13:56,552 [    train.py:  198]:	Loss 0.2576, ('Ner Loss', 0.022473836317658424),  ('CLS Classification Loss', 0.23508673906326294)
+[INFO] 2022-10-01 09:13:56,552 [    train.py:  208]:	('Ner Acc', 0.9964401125907898),  ('CLS Classification Acc', 0.9365823864936829)
+[INFO] 2022-10-01 09:13:58,917 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:13:58,918 [    train.py:  227]:	Loss 0.1799, ('Ner Loss', 0.01858049),  ('CLS Classification Loss', 0.16130646)
+[INFO] 2022-10-01 09:13:58,918 [    train.py:  228]:	('Ner Acc', 0.9971178), ('CLS Classification Acc', 0.962567)
+[INFO] 2022-10-01 09:14:08,019 [    train.py:  237]:	Precision 0.000 Recall 0.000 F1 0.000
+[INFO] 2022-10-01 09:14:49,891 [    train.py:  185]:	Epoch 3: 
+[INFO] 2022-10-01 09:14:49,891 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:14:49,896 [    train.py:  198]:	Loss 0.2173, ('Ner Loss', 0.021220436319708824),  ('CLS Classification Loss', 0.19609753787517548)
+[INFO] 2022-10-01 09:14:49,896 [    train.py:  208]:	('Ner Acc', 0.9963327646255493),  ('CLS Classification Acc', 0.9369296431541443)
+[INFO] 2022-10-01 09:14:52,194 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:14:52,195 [    train.py:  227]:	Loss 0.1483, ('Ner Loss', 0.016317615),  ('CLS Classification Loss', 0.13195512)
+[INFO] 2022-10-01 09:14:52,195 [    train.py:  228]:	('Ner Acc', 0.9970473), ('CLS Classification Acc', 0.9627041)
+[INFO] 2022-10-01 09:15:01,295 [    train.py:  237]:	Precision 0.029 Recall 0.001 F1 0.002
+[INFO] 2022-10-01 09:15:43,038 [    train.py:  185]:	Epoch 4: 
+[INFO] 2022-10-01 09:15:43,039 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:15:43,046 [    train.py:  198]:	Loss 0.1904, ('Ner Loss', 0.01816638931632042),  ('CLS Classification Loss', 0.17224439978599548)
+[INFO] 2022-10-01 09:15:43,046 [    train.py:  208]:	('Ner Acc', 0.9963435530662537),  ('CLS Classification Acc', 0.9397071599960327)
+[INFO] 2022-10-01 09:15:45,361 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:15:45,362 [    train.py:  227]:	Loss 0.1512, ('Ner Loss', 0.014524341),  ('CLS Classification Loss', 0.13669002)
+[INFO] 2022-10-01 09:15:45,363 [    train.py:  228]:	('Ner Acc', 0.9971114), ('CLS Classification Acc', 0.9629782)
+[INFO] 2022-10-01 09:15:54,072 [    train.py:  237]:	Precision 0.118 Recall 0.002 F1 0.005
+[INFO] 2022-10-01 09:16:35,170 [    train.py:  185]:	Epoch 5: 
+[INFO] 2022-10-01 09:16:35,171 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:16:35,175 [    train.py:  198]:	Loss 0.1743, ('Ner Loss', 0.016236454248428345),  ('CLS Classification Loss', 0.15806415677070618)
+[INFO] 2022-10-01 09:16:35,175 [    train.py:  208]:	('Ner Acc', 0.9962669610977173),  ('CLS Classification Acc', 0.9429564476013184)
+[INFO] 2022-10-01 09:16:37,475 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:16:37,476 [    train.py:  227]:	Loss 0.1382, ('Ner Loss', 0.012938258),  ('CLS Classification Loss', 0.12527132)
+[INFO] 2022-10-01 09:16:37,476 [    train.py:  228]:	('Ner Acc', 0.9971189), ('CLS Classification Acc', 0.9648514)
+[INFO] 2022-10-01 09:16:46,329 [    train.py:  237]:	Precision 0.085 Recall 0.008 F1 0.015
+[INFO] 2022-10-01 09:17:28,323 [    train.py:  185]:	Epoch 6: 
+[INFO] 2022-10-01 09:17:28,324 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:17:28,329 [    train.py:  198]:	Loss 0.1587, ('Ner Loss', 0.014622165821492672),  ('CLS Classification Loss', 0.14409421384334564)
+[INFO] 2022-10-01 09:17:28,329 [    train.py:  208]:	('Ner Acc', 0.9962606430053711),  ('CLS Classification Acc', 0.9467263221740723)
+[INFO] 2022-10-01 09:17:30,679 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:17:30,679 [    train.py:  227]:	Loss 0.1276, ('Ner Loss', 0.012032137),  ('CLS Classification Loss', 0.11556613)
+[INFO] 2022-10-01 09:17:30,679 [    train.py:  228]:	('Ner Acc', 0.9972107), ('CLS Classification Acc', 0.96603924)
+[INFO] 2022-10-01 09:17:39,486 [    train.py:  237]:	Precision 0.239 Recall 0.040 F1 0.069
+[INFO] 2022-10-01 09:18:21,740 [    train.py:  185]:	Epoch 7: 
+[INFO] 2022-10-01 09:18:21,741 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:18:21,745 [    train.py:  198]:	Loss 0.1466, ('Ner Loss', 0.0137874661013484),  ('CLS Classification Loss', 0.13279150426387787)
+[INFO] 2022-10-01 09:18:21,745 [    train.py:  208]:	('Ner Acc', 0.9962065815925598),  ('CLS Classification Acc', 0.9500991702079773)
+[INFO] 2022-10-01 09:18:24,041 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:18:24,042 [    train.py:  227]:	Loss 0.1312, ('Ner Loss', 0.011627249),  ('CLS Classification Loss', 0.11957869)
+[INFO] 2022-10-01 09:18:24,042 [    train.py:  228]:	('Ner Acc', 0.9974048), ('CLS Classification Acc', 0.9667245)
+[INFO] 2022-10-01 09:18:33,016 [    train.py:  237]:	Precision 0.441 Recall 0.102 F1 0.165
+[INFO] 2022-10-01 09:19:14,844 [    train.py:  185]:	Epoch 8: 
+[INFO] 2022-10-01 09:19:14,845 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:19:14,854 [    train.py:  198]:	Loss 0.1369, ('Ner Loss', 0.012508045881986618),  ('CLS Classification Loss', 0.12442981451749802)
+[INFO] 2022-10-01 09:19:14,854 [    train.py:  208]:	('Ner Acc', 0.9964487552642822),  ('CLS Classification Acc', 0.9527406692504883)
+[INFO] 2022-10-01 09:19:17,176 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:19:17,177 [    train.py:  227]:	Loss 0.1150, ('Ner Loss', 0.011141455),  ('CLS Classification Loss', 0.10385561)
+[INFO] 2022-10-01 09:19:17,177 [    train.py:  228]:	('Ner Acc', 0.9973546), ('CLS Classification Acc', 0.9684454)
+[INFO] 2022-10-01 09:19:25,796 [    train.py:  237]:	Precision 0.277 Recall 0.117 F1 0.165
+[INFO] 2022-10-01 09:20:07,769 [    train.py:  185]:	Epoch 9: 
+[INFO] 2022-10-01 09:20:07,770 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:20:07,774 [    train.py:  198]:	Loss 0.1233, ('Ner Loss', 0.011591028422117233),  ('CLS Classification Loss', 0.11173271387815475)
+[INFO] 2022-10-01 09:20:07,775 [    train.py:  208]:	('Ner Acc', 0.9964979887008667),  ('CLS Classification Acc', 0.9571926593780518)
+[INFO] 2022-10-01 09:20:10,142 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:20:10,143 [    train.py:  227]:	Loss 0.1070, ('Ner Loss', 0.010385587),  ('CLS Classification Loss', 0.09659358)
+[INFO] 2022-10-01 09:20:10,143 [    train.py:  228]:	('Ner Acc', 0.997504), ('CLS Classification Acc', 0.9691155)
+[INFO] 2022-10-01 09:20:18,639 [    train.py:  237]:	Precision 0.322 Recall 0.150 F1 0.205
+[INFO] 2022-10-01 09:21:00,441 [    train.py:  185]:	Epoch 10: 
+[INFO] 2022-10-01 09:21:00,441 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:21:00,445 [    train.py:  198]:	Loss 0.1111, ('Ner Loss', 0.010935121215879917),  ('CLS Classification Loss', 0.10012608021497726)
+[INFO] 2022-10-01 09:21:00,445 [    train.py:  208]:	('Ner Acc', 0.9965316653251648),  ('CLS Classification Acc', 0.9619544744491577)
+[INFO] 2022-10-01 09:21:02,776 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:21:02,777 [    train.py:  227]:	Loss 0.1158, ('Ner Loss', 0.01041569),  ('CLS Classification Loss', 0.10538662)
+[INFO] 2022-10-01 09:21:02,777 [    train.py:  228]:	('Ner Acc', 0.9974579), ('CLS Classification Acc', 0.97034913)
+[INFO] 2022-10-01 09:21:11,569 [    train.py:  237]:	Precision 0.364 Recall 0.222 F1 0.276
+[INFO] 2022-10-01 09:21:53,568 [    train.py:  185]:	Epoch 11: 
+[INFO] 2022-10-01 09:21:53,569 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:21:53,577 [    train.py:  198]:	Loss 0.1029, ('Ner Loss', 0.01060208585113287),  ('CLS Classification Loss', 0.09229546785354614)
+[INFO] 2022-10-01 09:21:53,577 [    train.py:  208]:	('Ner Acc', 0.9965218901634216),  ('CLS Classification Acc', 0.9658234715461731)
+[INFO] 2022-10-01 09:21:55,899 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:21:55,900 [    train.py:  227]:	Loss 0.1253, ('Ner Loss', 0.010625312),  ('CLS Classification Loss', 0.11466648)
+[INFO] 2022-10-01 09:21:55,900 [    train.py:  228]:	('Ner Acc', 0.9973981), ('CLS Classification Acc', 0.969816)
+[INFO] 2022-10-01 09:22:04,975 [    train.py:  237]:	Precision 0.354 Recall 0.214 F1 0.267
+[INFO] 2022-10-01 09:22:47,313 [    train.py:  185]:	Epoch 12: 
+[INFO] 2022-10-01 09:22:47,313 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:22:47,318 [    train.py:  198]:	Loss 0.0915, ('Ner Loss', 0.009814743883907795),  ('CLS Classification Loss', 0.08166014403104782)
+[INFO] 2022-10-01 09:22:47,318 [    train.py:  208]:	('Ner Acc', 0.9966524243354797),  ('CLS Classification Acc', 0.9698413014411926)
+[INFO] 2022-10-01 09:22:49,657 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:22:49,658 [    train.py:  227]:	Loss 0.1231, ('Ner Loss', 0.010476606),  ('CLS Classification Loss', 0.11265007)
+[INFO] 2022-10-01 09:22:49,658 [    train.py:  228]:	('Ner Acc', 0.99757624), ('CLS Classification Acc', 0.9724355)
+[INFO] 2022-10-01 09:22:58,489 [    train.py:  237]:	Precision 0.398 Recall 0.224 F1 0.286
+[INFO] 2022-10-01 09:23:40,328 [    train.py:  185]:	Epoch 13: 
+[INFO] 2022-10-01 09:23:40,329 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:23:40,334 [    train.py:  198]:	Loss 0.0823, ('Ner Loss', 0.009264177642762661),  ('CLS Classification Loss', 0.07304640859365463)
+[INFO] 2022-10-01 09:23:40,335 [    train.py:  208]:	('Ner Acc', 0.9967703819274902),  ('CLS Classification Acc', 0.9725692868232727)
+[INFO] 2022-10-01 09:23:42,661 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:23:42,662 [    train.py:  227]:	Loss 0.1238, ('Ner Loss', 0.009860507),  ('CLS Classification Loss', 0.11396153)
+[INFO] 2022-10-01 09:23:42,662 [    train.py:  228]:	('Ner Acc', 0.9974393), ('CLS Classification Acc', 0.9720242)
+[INFO] 2022-10-01 09:23:51,620 [    train.py:  237]:	Precision 0.359 Recall 0.295 F1 0.324
+[INFO] 2022-10-01 09:24:32,830 [    train.py:  185]:	Epoch 14: 
+[INFO] 2022-10-01 09:24:32,831 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:24:32,838 [    train.py:  198]:	Loss 0.0719, ('Ner Loss', 0.0085776811465621),  ('CLS Classification Loss', 0.06331450492143631)
+[INFO] 2022-10-01 09:24:32,839 [    train.py:  208]:	('Ner Acc', 0.9968448281288147),  ('CLS Classification Acc', 0.9762154817581177)
+[INFO] 2022-10-01 09:24:35,168 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:24:35,169 [    train.py:  227]:	Loss 0.1473, ('Ner Loss', 0.010958195),  ('CLS Classification Loss', 0.13635226)
+[INFO] 2022-10-01 09:24:35,169 [    train.py:  228]:	('Ner Acc', 0.99755526), ('CLS Classification Acc', 0.97336435)
+[INFO] 2022-10-01 09:24:43,952 [    train.py:  237]:	Precision 0.413 Recall 0.233 F1 0.298
+[INFO] 2022-10-01 09:25:25,192 [    train.py:  185]:	Epoch 15: 
+[INFO] 2022-10-01 09:25:25,193 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:25:25,197 [    train.py:  198]:	Loss 0.0658, ('Ner Loss', 0.008080943487584591),  ('CLS Classification Loss', 0.05767036974430084)
+[INFO] 2022-10-01 09:25:25,197 [    train.py:  208]:	('Ner Acc', 0.9969189167022705),  ('CLS Classification Acc', 0.9781869053840637)
+[INFO] 2022-10-01 09:25:27,496 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:25:27,497 [    train.py:  227]:	Loss 0.1324, ('Ner Loss', 0.010210067),  ('CLS Classification Loss', 0.122192584)
+[INFO] 2022-10-01 09:25:27,497 [    train.py:  228]:	('Ner Acc', 0.9975353), ('CLS Classification Acc', 0.9745523)
+[INFO] 2022-10-01 09:25:36,768 [    train.py:  237]:	Precision 0.415 Recall 0.272 F1 0.329
+[INFO] 2022-10-01 09:26:18,826 [    train.py:  185]:	Epoch 16: 
+[INFO] 2022-10-01 09:26:18,827 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:26:18,833 [    train.py:  198]:	Loss 0.0592, ('Ner Loss', 0.007684832904487848),  ('CLS Classification Loss', 0.051482100039720535)
+[INFO] 2022-10-01 09:26:18,833 [    train.py:  208]:	('Ner Acc', 0.9969035387039185),  ('CLS Classification Acc', 0.9805059432983398)
+[INFO] 2022-10-01 09:26:21,189 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:26:21,190 [    train.py:  227]:	Loss 0.1541, ('Ner Loss', 0.010125418),  ('CLS Classification Loss', 0.1439678)
+[INFO] 2022-10-01 09:26:21,190 [    train.py:  228]:	('Ner Acc', 0.99739635), ('CLS Classification Acc', 0.97213084)
+[INFO] 2022-10-01 09:26:30,067 [    train.py:  237]:	Precision 0.398 Recall 0.382 F1 0.390
+[INFO] 2022-10-01 09:27:12,000 [    train.py:  185]:	Epoch 17: 
+[INFO] 2022-10-01 09:27:12,001 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:27:12,006 [    train.py:  198]:	Loss 0.0534, ('Ner Loss', 0.00727683212608099),  ('CLS Classification Loss', 0.04612119495868683)
+[INFO] 2022-10-01 09:27:12,006 [    train.py:  208]:	('Ner Acc', 0.9969895482063293),  ('CLS Classification Acc', 0.983122706413269)
+[INFO] 2022-10-01 09:27:14,352 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:27:14,352 [    train.py:  227]:	Loss 0.1734, ('Ner Loss', 0.010921635),  ('CLS Classification Loss', 0.16247754)
+[INFO] 2022-10-01 09:27:14,352 [    train.py:  228]:	('Ner Acc', 0.9975335), ('CLS Classification Acc', 0.97377557)
+[INFO] 2022-10-01 09:27:23,203 [    train.py:  237]:	Precision 0.435 Recall 0.356 F1 0.392
+[INFO] 2022-10-01 09:28:04,837 [    train.py:  185]:	Epoch 18: 
+[INFO] 2022-10-01 09:28:04,837 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:28:04,841 [    train.py:  198]:	Loss 0.0503, ('Ner Loss', 0.007142271846532822),  ('CLS Classification Loss', 0.04317892715334892)
+[INFO] 2022-10-01 09:28:04,841 [    train.py:  208]:	('Ner Acc', 0.997025191783905),  ('CLS Classification Acc', 0.9840400815010071)
+[INFO] 2022-10-01 09:28:07,121 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:28:07,122 [    train.py:  227]:	Loss 0.1589, ('Ner Loss', 0.010699951),  ('CLS Classification Loss', 0.14815345)
+[INFO] 2022-10-01 09:28:07,122 [    train.py:  228]:	('Ner Acc', 0.9973919), ('CLS Classification Acc', 0.9739888)
+[INFO] 2022-10-01 09:28:15,900 [    train.py:  237]:	Precision 0.402 Recall 0.368 F1 0.384
+[INFO] 2022-10-01 09:28:57,934 [    train.py:  185]:	Epoch 19: 
+[INFO] 2022-10-01 09:28:57,935 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:28:57,941 [    train.py:  198]:	Loss 0.0434, ('Ner Loss', 0.006825750693678856),  ('CLS Classification Loss', 0.03659018874168396)
+[INFO] 2022-10-01 09:28:57,941 [    train.py:  208]:	('Ner Acc', 0.997042179107666),  ('CLS Classification Acc', 0.9863339066505432)
+[INFO] 2022-10-01 09:29:00,260 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:29:00,261 [    train.py:  227]:	Loss 0.1663, ('Ner Loss', 0.010481794),  ('CLS Classification Loss', 0.15582983)
+[INFO] 2022-10-01 09:29:00,261 [    train.py:  228]:	('Ner Acc', 0.9976147), ('CLS Classification Acc', 0.97520715)
+[INFO] 2022-10-01 09:29:09,055 [    train.py:  237]:	Precision 0.456 Recall 0.399 F1 0.426
+[INFO] 2022-10-01 09:29:50,983 [    train.py:  185]:	Epoch 20: 
+[INFO] 2022-10-01 09:29:50,983 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:29:50,990 [    train.py:  198]:	Loss 0.0371, ('Ner Loss', 0.006305234972387552),  ('CLS Classification Loss', 0.030826041474938393)
+[INFO] 2022-10-01 09:29:50,990 [    train.py:  208]:	('Ner Acc', 0.9971992373466492),  ('CLS Classification Acc', 0.989124059677124)
+[INFO] 2022-10-01 09:29:53,274 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:29:53,275 [    train.py:  227]:	Loss 0.1711, ('Ner Loss', 0.0111904405),  ('CLS Classification Loss', 0.15991504)
+[INFO] 2022-10-01 09:29:53,275 [    train.py:  228]:	('Ner Acc', 0.99763155), ('CLS Classification Acc', 0.9758314)
+[INFO] 2022-10-01 09:30:02,329 [    train.py:  237]:	Precision 0.480 Recall 0.387 F1 0.429
+[INFO] 2022-10-01 09:30:44,285 [    train.py:  185]:	Epoch 21: 
+[INFO] 2022-10-01 09:30:44,286 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:30:44,290 [    train.py:  198]:	Loss 0.0330, ('Ner Loss', 0.006151475012302399),  ('CLS Classification Loss', 0.026829402893781662)
+[INFO] 2022-10-01 09:30:44,290 [    train.py:  208]:	('Ner Acc', 0.9971628189086914),  ('CLS Classification Acc', 0.9899674654006958)
+[INFO] 2022-10-01 09:30:46,634 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:30:46,635 [    train.py:  227]:	Loss 0.1850, ('Ner Loss', 0.01082309),  ('CLS Classification Loss', 0.174196)
+[INFO] 2022-10-01 09:30:46,635 [    train.py:  228]:	('Ner Acc', 0.9976202), ('CLS Classification Acc', 0.9749483)
+[INFO] 2022-10-01 09:30:55,151 [    train.py:  237]:	Precision 0.458 Recall 0.375 F1 0.412
+[INFO] 2022-10-01 09:31:37,231 [    train.py:  185]:	Epoch 22: 
+[INFO] 2022-10-01 09:31:37,232 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:31:37,238 [    train.py:  198]:	Loss 0.0255, ('Ner Loss', 0.005886407103389502),  ('CLS Classification Loss', 0.0196259543299675)
+[INFO] 2022-10-01 09:31:37,238 [    train.py:  208]:	('Ner Acc', 0.9973048567771912),  ('CLS Classification Acc', 0.992918848991394)
+[INFO] 2022-10-01 09:31:39,595 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:31:39,596 [    train.py:  227]:	Loss 0.1895, ('Ner Loss', 0.010702119),  ('CLS Classification Loss', 0.17876212)
+[INFO] 2022-10-01 09:31:39,597 [    train.py:  228]:	('Ner Acc', 0.99762547), ('CLS Classification Acc', 0.9754965)
+[INFO] 2022-10-01 09:31:48,123 [    train.py:  237]:	Precision 0.458 Recall 0.400 F1 0.427
+[INFO] 2022-10-01 09:32:30,255 [    train.py:  185]:	Epoch 23: 
+[INFO] 2022-10-01 09:32:30,255 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:32:30,258 [    train.py:  198]:	Loss 0.0215, ('Ner Loss', 0.005685838870704174),  ('CLS Classification Loss', 0.0158303864300251)
+[INFO] 2022-10-01 09:32:30,258 [    train.py:  208]:	('Ner Acc', 0.9973077178001404),  ('CLS Classification Acc', 0.9944568276405334)
+[INFO] 2022-10-01 09:32:32,586 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:32:32,586 [    train.py:  227]:	Loss 0.2062, ('Ner Loss', 0.010405664),  ('CLS Classification Loss', 0.19577667)
+[INFO] 2022-10-01 09:32:32,587 [    train.py:  228]:	('Ner Acc', 0.99767774), ('CLS Classification Acc', 0.9738365)
+[INFO] 2022-10-01 09:32:41,149 [    train.py:  237]:	Precision 0.437 Recall 0.413 F1 0.425
+[INFO] 2022-10-01 09:33:23,062 [    train.py:  185]:	Epoch 24: 
+[INFO] 2022-10-01 09:33:23,063 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:33:23,070 [    train.py:  198]:	Loss 0.0181, ('Ner Loss', 0.005447259172797203),  ('CLS Classification Loss', 0.012694189324975014)
+[INFO] 2022-10-01 09:33:23,070 [    train.py:  208]:	('Ner Acc', 0.9974547028541565),  ('CLS Classification Acc', 0.9954236745834351)
+[INFO] 2022-10-01 09:33:25,408 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:33:25,409 [    train.py:  227]:	Loss 0.2052, ('Ner Loss', 0.010503295),  ('CLS Classification Loss', 0.19472007)
+[INFO] 2022-10-01 09:33:25,409 [    train.py:  228]:	('Ner Acc', 0.9976349), ('CLS Classification Acc', 0.97558784)
+[INFO] 2022-10-01 09:33:34,475 [    train.py:  237]:	Precision 0.456 Recall 0.425 F1 0.440
+[INFO] 2022-10-01 09:34:16,895 [    train.py:  185]:	Epoch 25: 
+[INFO] 2022-10-01 09:34:16,896 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:34:16,904 [    train.py:  198]:	Loss 0.0138, ('Ner Loss', 0.005165798589587212),  ('CLS Classification Loss', 0.008592911064624786)
+[INFO] 2022-10-01 09:34:16,905 [    train.py:  208]:	('Ner Acc', 0.9974674582481384),  ('CLS Classification Acc', 0.9969244599342346)
+[INFO] 2022-10-01 09:34:19,265 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:34:19,266 [    train.py:  227]:	Loss 0.2251, ('Ner Loss', 0.012072453),  ('CLS Classification Loss', 0.21303111)
+[INFO] 2022-10-01 09:34:19,266 [    train.py:  228]:	('Ner Acc', 0.99782544), ('CLS Classification Acc', 0.9745371)
+[INFO] 2022-10-01 09:34:27,990 [    train.py:  237]:	Precision 0.480 Recall 0.363 F1 0.414
+[INFO] 2022-10-01 09:35:09,898 [    train.py:  185]:	Epoch 26: 
+[INFO] 2022-10-01 09:35:09,898 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:35:09,902 [    train.py:  198]:	Loss 0.0144, ('Ner Loss', 0.005027716513723135),  ('CLS Classification Loss', 0.009396051988005638)
+[INFO] 2022-10-01 09:35:09,902 [    train.py:  208]:	('Ner Acc', 0.997600793838501),  ('CLS Classification Acc', 0.9967134594917297)
+[INFO] 2022-10-01 09:35:12,255 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:35:12,255 [    train.py:  227]:	Loss 0.2268, ('Ner Loss', 0.011397946),  ('CLS Classification Loss', 0.2153764)
+[INFO] 2022-10-01 09:35:12,256 [    train.py:  228]:	('Ner Acc', 0.9977829), ('CLS Classification Acc', 0.97444564)
+[INFO] 2022-10-01 09:35:21,046 [    train.py:  237]:	Precision 0.497 Recall 0.372 F1 0.425
+[INFO] 2022-10-01 09:36:03,124 [    train.py:  185]:	Epoch 27: 
+[INFO] 2022-10-01 09:36:03,124 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:36:03,127 [    train.py:  198]:	Loss 0.0106, ('Ner Loss', 0.004678842145949602),  ('CLS Classification Loss', 0.005964035168290138)
+[INFO] 2022-10-01 09:36:03,127 [    train.py:  208]:	('Ner Acc', 0.9976479411125183),  ('CLS Classification Acc', 0.9979908466339111)
+[INFO] 2022-10-01 09:36:05,454 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:36:05,454 [    train.py:  227]:	Loss 0.2388, ('Ner Loss', 0.011277094),  ('CLS Classification Loss', 0.22753337)
+[INFO] 2022-10-01 09:36:05,454 [    train.py:  228]:	('Ner Acc', 0.9977934), ('CLS Classification Acc', 0.97426295)
+[INFO] 2022-10-01 09:36:13,950 [    train.py:  237]:	Precision 0.492 Recall 0.376 F1 0.427
+[INFO] 2022-10-01 09:36:55,715 [    train.py:  185]:	Epoch 28: 
+[INFO] 2022-10-01 09:36:55,715 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:36:55,720 [    train.py:  198]:	Loss 0.0110, ('Ner Loss', 0.004551219288259745),  ('CLS Classification Loss', 0.006452483125030994)
+[INFO] 2022-10-01 09:36:55,720 [    train.py:  208]:	('Ner Acc', 0.997694730758667),  ('CLS Classification Acc', 0.9979159832000732)
+[INFO] 2022-10-01 09:36:58,050 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:36:58,051 [    train.py:  227]:	Loss 0.2212, ('Ner Loss', 0.011655921),  ('CLS Classification Loss', 0.20951767)
+[INFO] 2022-10-01 09:36:58,051 [    train.py:  228]:	('Ner Acc', 0.9978446), ('CLS Classification Acc', 0.97525287)
+[INFO] 2022-10-01 09:37:07,078 [    train.py:  237]:	Precision 0.462 Recall 0.413 F1 0.436
+[INFO] 2022-10-01 09:37:49,566 [    train.py:  185]:	Epoch 29: 
+[INFO] 2022-10-01 09:37:49,566 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:37:49,572 [    train.py:  198]:	Loss 0.0095, ('Ner Loss', 0.004362769424915314),  ('CLS Classification Loss', 0.005129821132868528)
+[INFO] 2022-10-01 09:37:49,573 [    train.py:  208]:	('Ner Acc', 0.9977819323539734),  ('CLS Classification Acc', 0.9984492659568787)
+[INFO] 2022-10-01 09:37:51,911 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:37:51,912 [    train.py:  227]:	Loss 0.2545, ('Ner Loss', 0.01171485),  ('CLS Classification Loss', 0.24275512)
+[INFO] 2022-10-01 09:37:51,912 [    train.py:  228]:	('Ner Acc', 0.9976958), ('CLS Classification Acc', 0.972146)
+[INFO] 2022-10-01 09:38:00,861 [    train.py:  237]:	Precision 0.451 Recall 0.425 F1 0.438
+[INFO] 2022-10-01 09:38:42,796 [    train.py:  185]:	Epoch 30: 
+[INFO] 2022-10-01 09:38:42,796 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:38:42,799 [    train.py:  198]:	Loss 0.0067, ('Ner Loss', 0.004039093852043152),  ('CLS Classification Loss', 0.0026675749104470015)
+[INFO] 2022-10-01 09:38:42,800 [    train.py:  208]:	('Ner Acc', 0.9978997111320496),  ('CLS Classification Acc', 0.9991439580917358)
+[INFO] 2022-10-01 09:38:45,122 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:38:45,122 [    train.py:  227]:	Loss 0.2550, ('Ner Loss', 0.012158876),  ('CLS Classification Loss', 0.24288292)
+[INFO] 2022-10-01 09:38:45,123 [    train.py:  228]:	('Ner Acc', 0.99773437), ('CLS Classification Acc', 0.9728923)
+[INFO] 2022-10-01 09:38:53,853 [    train.py:  237]:	Precision 0.468 Recall 0.444 F1 0.456
+[INFO] 2022-10-01 09:39:35,985 [    train.py:  185]:	Epoch 31: 
+[INFO] 2022-10-01 09:39:35,985 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:39:35,989 [    train.py:  198]:	Loss 0.0067, ('Ner Loss', 0.003768049878999591),  ('CLS Classification Loss', 0.0029233635868877172)
+[INFO] 2022-10-01 09:39:35,989 [    train.py:  208]:	('Ner Acc', 0.9980452656745911),  ('CLS Classification Acc', 0.9990200400352478)
+[INFO] 2022-10-01 09:39:38,341 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:39:38,342 [    train.py:  227]:	Loss 0.2521, ('Ner Loss', 0.011896062),  ('CLS Classification Loss', 0.24016546)
+[INFO] 2022-10-01 09:39:38,342 [    train.py:  228]:	('Ner Acc', 0.997716), ('CLS Classification Acc', 0.97395825)
+[INFO] 2022-10-01 09:39:47,302 [    train.py:  237]:	Precision 0.481 Recall 0.473 F1 0.477
+[INFO] 2022-10-01 09:40:29,273 [    train.py:  185]:	Epoch 32: 
+[INFO] 2022-10-01 09:40:29,274 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:40:29,279 [    train.py:  198]:	Loss 0.0066, ('Ner Loss', 0.003671768819913268),  ('CLS Classification Loss', 0.0029770368710160255)
+[INFO] 2022-10-01 09:40:29,279 [    train.py:  208]:	('Ner Acc', 0.9980717301368713),  ('CLS Classification Acc', 0.9991438984870911)
+[INFO] 2022-10-01 09:40:31,595 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:40:31,596 [    train.py:  227]:	Loss 0.2383, ('Ner Loss', 0.012283559),  ('CLS Classification Loss', 0.22602712)
+[INFO] 2022-10-01 09:40:31,596 [    train.py:  228]:	('Ner Acc', 0.9978208), ('CLS Classification Acc', 0.9749634)
+[INFO] 2022-10-01 09:40:40,319 [    train.py:  237]:	Precision 0.501 Recall 0.438 F1 0.467
+[INFO] 2022-10-01 09:41:22,334 [    train.py:  185]:	Epoch 33: 
+[INFO] 2022-10-01 09:41:22,335 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:41:22,341 [    train.py:  198]:	Loss 0.0066, ('Ner Loss', 0.0035002126824110746),  ('CLS Classification Loss', 0.0030879108235239983)
+[INFO] 2022-10-01 09:41:22,341 [    train.py:  208]:	('Ner Acc', 0.9981557726860046),  ('CLS Classification Acc', 0.9989083409309387)
+[INFO] 2022-10-01 09:41:24,642 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:41:24,643 [    train.py:  227]:	Loss 0.2252, ('Ner Loss', 0.012002386),  ('CLS Classification Loss', 0.21324567)
+[INFO] 2022-10-01 09:41:24,643 [    train.py:  228]:	('Ner Acc', 0.9979132), ('CLS Classification Acc', 0.9765321)
+[INFO] 2022-10-01 09:41:33,888 [    train.py:  237]:	Precision 0.532 Recall 0.464 F1 0.496
+[INFO] 2022-10-01 09:42:15,824 [    train.py:  185]:	Epoch 34: 
+[INFO] 2022-10-01 09:42:15,825 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:42:15,832 [    train.py:  198]:	Loss 0.0054, ('Ner Loss', 0.0032328972592949867),  ('CLS Classification Loss', 0.0021478321868926287)
+[INFO] 2022-10-01 09:42:15,832 [    train.py:  208]:	('Ner Acc', 0.998302698135376),  ('CLS Classification Acc', 0.9994540810585022)
+[INFO] 2022-10-01 09:42:18,183 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:42:18,184 [    train.py:  227]:	Loss 0.2527, ('Ner Loss', 0.012898717),  ('CLS Classification Loss', 0.23976241)
+[INFO] 2022-10-01 09:42:18,184 [    train.py:  228]:	('Ner Acc', 0.997916), ('CLS Classification Acc', 0.9750244)
+[INFO] 2022-10-01 09:42:26,685 [    train.py:  237]:	Precision 0.523 Recall 0.422 F1 0.467
+[INFO] 2022-10-01 09:43:08,774 [    train.py:  185]:	Epoch 35: 
+[INFO] 2022-10-01 09:43:08,775 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:43:08,781 [    train.py:  198]:	Loss 0.0070, ('Ner Loss', 0.0031503497157245874),  ('CLS Classification Loss', 0.0038784686475992203)
+[INFO] 2022-10-01 09:43:08,781 [    train.py:  208]:	('Ner Acc', 0.9983466863632202),  ('CLS Classification Acc', 0.9987473487854004)
+[INFO] 2022-10-01 09:43:11,116 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:43:11,117 [    train.py:  227]:	Loss 0.2270, ('Ner Loss', 0.012520691),  ('CLS Classification Loss', 0.21446805)
+[INFO] 2022-10-01 09:43:11,117 [    train.py:  228]:	('Ner Acc', 0.997824), ('CLS Classification Acc', 0.975131)
+[INFO] 2022-10-01 09:43:19,810 [    train.py:  237]:	Precision 0.490 Recall 0.454 F1 0.472
+[INFO] 2022-10-01 09:44:01,478 [    train.py:  185]:	Epoch 36: 
+[INFO] 2022-10-01 09:44:01,479 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:44:01,485 [    train.py:  198]:	Loss 0.0059, ('Ner Loss', 0.0030764462426304817),  ('CLS Classification Loss', 0.0028632686007767916)
+[INFO] 2022-10-01 09:44:01,485 [    train.py:  208]:	('Ner Acc', 0.9983846545219421),  ('CLS Classification Acc', 0.9989705681800842)
+[INFO] 2022-10-01 09:44:03,771 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:44:03,771 [    train.py:  227]:	Loss 0.2281, ('Ner Loss', 0.01240727),  ('CLS Classification Loss', 0.21574208)
+[INFO] 2022-10-01 09:44:03,772 [    train.py:  228]:	('Ner Acc', 0.9978296), ('CLS Classification Acc', 0.9763493)
+[INFO] 2022-10-01 09:44:11,926 [    train.py:  237]:	Precision 0.515 Recall 0.515 F1 0.515
+[INFO] 2022-10-01 09:44:52,580 [    train.py:  185]:	Epoch 37: 
+[INFO] 2022-10-01 09:44:52,580 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:44:52,583 [    train.py:  198]:	Loss 0.0071, ('Ner Loss', 0.0029505298007279634),  ('CLS Classification Loss', 0.004194558598101139)
+[INFO] 2022-10-01 09:44:52,583 [    train.py:  208]:	('Ner Acc', 0.9984427094459534),  ('CLS Classification Acc', 0.9987966418266296)
+[INFO] 2022-10-01 09:44:54,861 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:44:54,862 [    train.py:  227]:	Loss 0.1906, ('Ner Loss', 0.011995835),  ('CLS Classification Loss', 0.1785962)
+[INFO] 2022-10-01 09:44:54,862 [    train.py:  228]:	('Ner Acc', 0.9980537), ('CLS Classification Acc', 0.9781463)
+[INFO] 2022-10-01 09:45:03,688 [    train.py:  237]:	Precision 0.550 Recall 0.499 F1 0.524
+[INFO] 2022-10-01 09:45:44,851 [    train.py:  185]:	Epoch 38: 
+[INFO] 2022-10-01 09:45:44,851 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:45:44,855 [    train.py:  198]:	Loss 0.0053, ('Ner Loss', 0.002725411904975772),  ('CLS Classification Loss', 0.0025462836492806673)
+[INFO] 2022-10-01 09:45:44,855 [    train.py:  208]:	('Ner Acc', 0.9985592365264893),  ('CLS Classification Acc', 0.9991936683654785)
+[INFO] 2022-10-01 09:45:47,183 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:45:47,184 [    train.py:  227]:	Loss 0.2220, ('Ner Loss', 0.0129345795),  ('CLS Classification Loss', 0.20907159)
+[INFO] 2022-10-01 09:45:47,184 [    train.py:  228]:	('Ner Acc', 0.99801826), ('CLS Classification Acc', 0.9768518)
+[INFO] 2022-10-01 09:45:55,518 [    train.py:  237]:	Precision 0.540 Recall 0.501 F1 0.519
+[INFO] 2022-10-01 09:46:36,262 [    train.py:  185]:	Epoch 39: 
+[INFO] 2022-10-01 09:46:36,262 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:46:36,268 [    train.py:  198]:	Loss 0.0052, ('Ner Loss', 0.0025444896891713142),  ('CLS Classification Loss', 0.0026064112316817045)
+[INFO] 2022-10-01 09:46:36,268 [    train.py:  208]:	('Ner Acc', 0.9986710548400879),  ('CLS Classification Acc', 0.9992184042930603)
+[INFO] 2022-10-01 09:46:38,560 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:46:38,561 [    train.py:  227]:	Loss 0.2067, ('Ner Loss', 0.012557053),  ('CLS Classification Loss', 0.19410133)
+[INFO] 2022-10-01 09:46:38,561 [    train.py:  228]:	('Ner Acc', 0.9980231), ('CLS Classification Acc', 0.9765929)
+[INFO] 2022-10-01 09:46:47,035 [    train.py:  237]:	Precision 0.522 Recall 0.509 F1 0.516
+[INFO] 2022-10-01 09:47:27,799 [    train.py:  185]:	Epoch 40: 
+[INFO] 2022-10-01 09:47:27,799 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:47:27,804 [    train.py:  198]:	Loss 0.0037, ('Ner Loss', 0.0023234980180859566),  ('CLS Classification Loss', 0.0013902507489547133)
+[INFO] 2022-10-01 09:47:27,804 [    train.py:  208]:	('Ner Acc', 0.998826265335083),  ('CLS Classification Acc', 0.9995906352996826)
+[INFO] 2022-10-01 09:47:30,091 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:47:30,091 [    train.py:  227]:	Loss 0.2410, ('Ner Loss', 0.013379782),  ('CLS Classification Loss', 0.22760306)
+[INFO] 2022-10-01 09:47:30,092 [    train.py:  228]:	('Ner Acc', 0.997979), ('CLS Classification Acc', 0.97624266)
+[INFO] 2022-10-01 09:47:38,741 [    train.py:  237]:	Precision 0.527 Recall 0.491 F1 0.508
+[INFO] 2022-10-01 09:48:19,567 [    train.py:  185]:	Epoch 41: 
+[INFO] 2022-10-01 09:48:19,567 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:48:19,571 [    train.py:  198]:	Loss 0.0035, ('Ner Loss', 0.002176308538764715),  ('CLS Classification Loss', 0.0013145564589649439)
+[INFO] 2022-10-01 09:48:19,571 [    train.py:  208]:	('Ner Acc', 0.9988456964492798),  ('CLS Classification Acc', 0.9996524453163147)
+[INFO] 2022-10-01 09:48:21,844 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:48:21,845 [    train.py:  227]:	Loss 0.2400, ('Ner Loss', 0.013122204),  ('CLS Classification Loss', 0.22684057)
+[INFO] 2022-10-01 09:48:21,845 [    train.py:  228]:	('Ner Acc', 0.9980013), ('CLS Classification Acc', 0.9763493)
+[INFO] 2022-10-01 09:48:30,164 [    train.py:  237]:	Precision 0.534 Recall 0.511 F1 0.522
+[INFO] 2022-10-01 09:49:10,819 [    train.py:  185]:	Epoch 42: 
+[INFO] 2022-10-01 09:49:10,819 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:49:10,823 [    train.py:  198]:	Loss 0.0034, ('Ner Loss', 0.0021373084746301174),  ('CLS Classification Loss', 0.0012239266652613878)
+[INFO] 2022-10-01 09:49:10,823 [    train.py:  208]:	('Ner Acc', 0.9988846778869629),  ('CLS Classification Acc', 0.9996152520179749)
+[INFO] 2022-10-01 09:49:13,117 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:49:13,118 [    train.py:  227]:	Loss 0.2399, ('Ner Loss', 0.014801346),  ('CLS Classification Loss', 0.22508943)
+[INFO] 2022-10-01 09:49:13,118 [    train.py:  228]:	('Ner Acc', 0.9979172), ('CLS Classification Acc', 0.9758619)
+[INFO] 2022-10-01 09:49:21,607 [    train.py:  237]:	Precision 0.530 Recall 0.465 F1 0.496
+[INFO] 2022-10-01 09:50:02,616 [    train.py:  185]:	Epoch 43: 
+[INFO] 2022-10-01 09:50:02,616 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:50:02,619 [    train.py:  198]:	Loss 0.0031, ('Ner Loss', 0.002021635649725795),  ('CLS Classification Loss', 0.0010713549563661218)
+[INFO] 2022-10-01 09:50:02,619 [    train.py:  208]:	('Ner Acc', 0.9989973902702332),  ('CLS Classification Acc', 0.9996773600578308)
+[INFO] 2022-10-01 09:50:04,883 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:50:04,884 [    train.py:  227]:	Loss 0.2317, ('Ner Loss', 0.013329132),  ('CLS Classification Loss', 0.21832506)
+[INFO] 2022-10-01 09:50:04,884 [    train.py:  228]:	('Ner Acc', 0.99808544), ('CLS Classification Acc', 0.9774914)
+[INFO] 2022-10-01 09:50:13,228 [    train.py:  237]:	Precision 0.556 Recall 0.497 F1 0.525
+[INFO] 2022-10-01 09:50:54,025 [    train.py:  185]:	Epoch 44: 
+[INFO] 2022-10-01 09:50:54,025 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:50:54,029 [    train.py:  198]:	Loss 0.0098, ('Ner Loss', 0.0021248082630336285),  ('CLS Classification Loss', 0.007718826178461313)
+[INFO] 2022-10-01 09:50:54,029 [    train.py:  208]:	('Ner Acc', 0.9989675283432007),  ('CLS Classification Acc', 0.9984000325202942)
+[INFO] 2022-10-01 09:50:56,332 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:50:56,332 [    train.py:  227]:	Loss 0.1769, ('Ner Loss', 0.012805654),  ('CLS Classification Loss', 0.16410236)
+[INFO] 2022-10-01 09:50:56,333 [    train.py:  228]:	('Ner Acc', 0.99801534), ('CLS Classification Acc', 0.97673005)
+[INFO] 2022-10-01 09:51:04,726 [    train.py:  237]:	Precision 0.550 Recall 0.484 F1 0.515
+[INFO] 2022-10-01 09:51:45,974 [    train.py:  185]:	Epoch 45: 
+[INFO] 2022-10-01 09:51:45,974 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:51:45,980 [    train.py:  198]:	Loss 0.0052, ('Ner Loss', 0.0019076892640441656),  ('CLS Classification Loss', 0.0033353166654706)
+[INFO] 2022-10-01 09:51:45,980 [    train.py:  208]:	('Ner Acc', 0.9990259408950806),  ('CLS Classification Acc', 0.9989579319953918)
+[INFO] 2022-10-01 09:51:48,215 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:51:48,215 [    train.py:  227]:	Loss 0.1925, ('Ner Loss', 0.013549185),  ('CLS Classification Loss', 0.17895484)
+[INFO] 2022-10-01 09:51:48,215 [    train.py:  228]:	('Ner Acc', 0.9980463), ('CLS Classification Acc', 0.9770954)
+[INFO] 2022-10-01 09:51:56,390 [    train.py:  237]:	Precision 0.557 Recall 0.489 F1 0.521
+[INFO] 2022-10-01 09:52:37,169 [    train.py:  185]:	Epoch 46: 
+[INFO] 2022-10-01 09:52:37,169 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:52:37,175 [    train.py:  198]:	Loss 0.0038, ('Ner Loss', 0.0017379072960466146),  ('CLS Classification Loss', 0.0020990788470953703)
+[INFO] 2022-10-01 09:52:37,175 [    train.py:  208]:	('Ner Acc', 0.9991240501403809),  ('CLS Classification Acc', 0.999478816986084)
+[INFO] 2022-10-01 09:52:39,451 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:52:39,452 [    train.py:  227]:	Loss 0.2263, ('Ner Loss', 0.014671448),  ('CLS Classification Loss', 0.21158434)
+[INFO] 2022-10-01 09:52:39,452 [    train.py:  228]:	('Ner Acc', 0.9978921), ('CLS Classification Acc', 0.9721157)
+[INFO] 2022-10-01 09:52:47,703 [    train.py:  237]:	Precision 0.468 Recall 0.557 F1 0.509
+[INFO] 2022-10-01 09:53:28,339 [    train.py:  185]:	Epoch 47: 
+[INFO] 2022-10-01 09:53:28,340 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:53:28,343 [    train.py:  198]:	Loss 0.0043, ('Ner Loss', 0.0016074851155281067),  ('CLS Classification Loss', 0.0026701209135353565)
+[INFO] 2022-10-01 09:53:28,343 [    train.py:  208]:	('Ner Acc', 0.9992170929908752),  ('CLS Classification Acc', 0.9991194605827332)
+[INFO] 2022-10-01 09:53:30,659 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:53:30,659 [    train.py:  227]:	Loss 0.2069, ('Ner Loss', 0.014525592),  ('CLS Classification Loss', 0.19234198)
+[INFO] 2022-10-01 09:53:30,660 [    train.py:  228]:	('Ner Acc', 0.9979804), ('CLS Classification Acc', 0.9761665)
+[INFO] 2022-10-01 09:53:39,278 [    train.py:  237]:	Precision 0.531 Recall 0.476 F1 0.502
+[INFO] 2022-10-01 09:54:19,887 [    train.py:  185]:	Epoch 48: 
+[INFO] 2022-10-01 09:54:19,888 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:54:19,890 [    train.py:  198]:	Loss 0.0026, ('Ner Loss', 0.0013675297377631068),  ('CLS Classification Loss', 0.0012726190034300089)
+[INFO] 2022-10-01 09:54:19,890 [    train.py:  208]:	('Ner Acc', 0.9993447661399841),  ('CLS Classification Acc', 0.9995409250259399)
+[INFO] 2022-10-01 09:54:22,183 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:54:22,184 [    train.py:  227]:	Loss 0.2199, ('Ner Loss', 0.015728617),  ('CLS Classification Loss', 0.20413122)
+[INFO] 2022-10-01 09:54:22,184 [    train.py:  228]:	('Ner Acc', 0.9980633), ('CLS Classification Acc', 0.9779331)
+[INFO] 2022-10-01 09:54:30,564 [    train.py:  237]:	Precision 0.553 Recall 0.518 F1 0.535
+[INFO] 2022-10-01 09:55:11,065 [    train.py:  185]:	Epoch 49: 
+[INFO] 2022-10-01 09:55:11,065 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:55:11,071 [    train.py:  198]:	Loss 0.0023, ('Ner Loss', 0.0012860926799476147),  ('CLS Classification Loss', 0.0010448292596265674)
+[INFO] 2022-10-01 09:55:11,071 [    train.py:  208]:	('Ner Acc', 0.9993900656700134),  ('CLS Classification Acc', 0.9997146725654602)
+[INFO] 2022-10-01 09:55:13,344 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:55:13,345 [    train.py:  227]:	Loss 0.2257, ('Ner Loss', 0.015848251),  ('CLS Classification Loss', 0.20983787)
+[INFO] 2022-10-01 09:55:13,345 [    train.py:  228]:	('Ner Acc', 0.99804676), ('CLS Classification Acc', 0.9780093)
+[INFO] 2022-10-01 09:55:21,808 [    train.py:  237]:	Precision 0.573 Recall 0.522 F1 0.546
+[INFO] 2022-10-01 09:56:02,544 [    train.py:  185]:	Epoch 50: 
+[INFO] 2022-10-01 09:56:02,545 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:56:02,548 [    train.py:  198]:	Loss 0.0028, ('Ner Loss', 0.0012054317630827427),  ('CLS Classification Loss', 0.001610665931366384)
+[INFO] 2022-10-01 09:56:02,548 [    train.py:  208]:	('Ner Acc', 0.9994383454322815),  ('CLS Classification Acc', 0.999553382396698)
+[INFO] 2022-10-01 09:56:04,846 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:56:04,846 [    train.py:  227]:	Loss 0.2252, ('Ner Loss', 0.01633582),  ('CLS Classification Loss', 0.20890772)
+[INFO] 2022-10-01 09:56:04,846 [    train.py:  228]:	('Ner Acc', 0.99793065), ('CLS Classification Acc', 0.9749788)
+[INFO] 2022-10-01 09:56:13,379 [    train.py:  237]:	Precision 0.529 Recall 0.490 F1 0.509
+[INFO] 2022-10-01 09:56:53,966 [    train.py:  185]:	Epoch 51: 
+[INFO] 2022-10-01 09:56:53,966 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:56:53,973 [    train.py:  198]:	Loss 0.0019, ('Ner Loss', 0.0011194194667041302),  ('CLS Classification Loss', 0.0007741187582723796)
+[INFO] 2022-10-01 09:56:53,973 [    train.py:  208]:	('Ner Acc', 0.9994850158691406),  ('CLS Classification Acc', 0.9997270703315735)
+[INFO] 2022-10-01 09:56:56,263 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:56:56,264 [    train.py:  227]:	Loss 0.2222, ('Ner Loss', 0.016855547),  ('CLS Classification Loss', 0.20535195)
+[INFO] 2022-10-01 09:56:56,264 [    train.py:  228]:	('Ner Acc', 0.9980429), ('CLS Classification Acc', 0.977461)
+[INFO] 2022-10-01 09:57:04,648 [    train.py:  237]:	Precision 0.553 Recall 0.499 F1 0.525
+[INFO] 2022-10-01 09:57:45,588 [    train.py:  185]:	Epoch 52: 
+[INFO] 2022-10-01 09:57:45,589 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:57:45,595 [    train.py:  198]:	Loss 0.0025, ('Ner Loss', 0.001009692787192762),  ('CLS Classification Loss', 0.001501806196756661)
+[INFO] 2022-10-01 09:57:45,595 [    train.py:  208]:	('Ner Acc', 0.9995251297950745),  ('CLS Classification Acc', 0.999615490436554)
+[INFO] 2022-10-01 09:57:47,869 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:57:47,870 [    train.py:  227]:	Loss 0.2112, ('Ner Loss', 0.016241536),  ('CLS Classification Loss', 0.19497657)
+[INFO] 2022-10-01 09:57:47,870 [    train.py:  228]:	('Ner Acc', 0.99806327), ('CLS Classification Acc', 0.9778874)
+[INFO] 2022-10-01 09:57:55,925 [    train.py:  237]:	Precision 0.560 Recall 0.527 F1 0.543
+[INFO] 2022-10-01 09:58:36,397 [    train.py:  185]:	Epoch 53: 
+[INFO] 2022-10-01 09:58:36,397 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:58:36,400 [    train.py:  198]:	Loss 0.0015, ('Ner Loss', 0.0009441794827580452),  ('CLS Classification Loss', 0.0005733593134209514)
+[INFO] 2022-10-01 09:58:36,400 [    train.py:  208]:	('Ner Acc', 0.9995632767677307),  ('CLS Classification Acc', 0.9998013973236084)
+[INFO] 2022-10-01 09:58:38,672 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:58:38,673 [    train.py:  227]:	Loss 0.2175, ('Ner Loss', 0.016015096),  ('CLS Classification Loss', 0.20151727)
+[INFO] 2022-10-01 09:58:38,673 [    train.py:  228]:	('Ner Acc', 0.9980799), ('CLS Classification Acc', 0.9773697)
+[INFO] 2022-10-01 09:58:46,842 [    train.py:  237]:	Precision 0.548 Recall 0.516 F1 0.532
+[INFO] 2022-10-01 09:59:27,239 [    train.py:  185]:	Epoch 54: 
+[INFO] 2022-10-01 09:59:27,239 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 09:59:27,245 [    train.py:  198]:	Loss 0.0015, ('Ner Loss', 0.0008775773458182812),  ('CLS Classification Loss', 0.0005990705103613436)
+[INFO] 2022-10-01 09:59:27,245 [    train.py:  208]:	('Ner Acc', 0.9996135234832764),  ('CLS Classification Acc', 0.9997641444206238)
+[INFO] 2022-10-01 09:59:29,558 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 09:59:29,558 [    train.py:  227]:	Loss 0.2353, ('Ner Loss', 0.016841961),  ('CLS Classification Loss', 0.21845719)
+[INFO] 2022-10-01 09:59:29,559 [    train.py:  228]:	('Ner Acc', 0.998035), ('CLS Classification Acc', 0.97660816)
+[INFO] 2022-10-01 09:59:38,516 [    train.py:  237]:	Precision 0.536 Recall 0.529 F1 0.532
+[INFO] 2022-10-01 10:00:19,363 [    train.py:  185]:	Epoch 55: 
+[INFO] 2022-10-01 10:00:19,363 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:00:19,366 [    train.py:  198]:	Loss 0.0017, ('Ner Loss', 0.0008935804944485426),  ('CLS Classification Loss', 0.00079918879782781)
+[INFO] 2022-10-01 10:00:19,366 [    train.py:  208]:	('Ner Acc', 0.9996118545532227),  ('CLS Classification Acc', 0.9997392892837524)
+[INFO] 2022-10-01 10:00:21,672 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:00:21,672 [    train.py:  227]:	Loss 0.2586, ('Ner Loss', 0.01787351),  ('CLS Classification Loss', 0.24075904)
+[INFO] 2022-10-01 10:00:21,672 [    train.py:  228]:	('Ner Acc', 0.99794567), ('CLS Classification Acc', 0.9746283)
+[INFO] 2022-10-01 10:00:30,073 [    train.py:  237]:	Precision 0.514 Recall 0.497 F1 0.505
+[INFO] 2022-10-01 10:01:10,708 [    train.py:  185]:	Epoch 56: 
+[INFO] 2022-10-01 10:01:10,709 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:01:10,711 [    train.py:  198]:	Loss 0.0028, ('Ner Loss', 0.0009514358243905008),  ('CLS Classification Loss', 0.001853967783972621)
+[INFO] 2022-10-01 10:01:10,711 [    train.py:  208]:	('Ner Acc', 0.9995743632316589),  ('CLS Classification Acc', 0.9994166493415833)
+[INFO] 2022-10-01 10:01:12,982 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:01:12,982 [    train.py:  227]:	Loss 0.2163, ('Ner Loss', 0.015672877),  ('CLS Classification Loss', 0.20061976)
+[INFO] 2022-10-01 10:01:12,983 [    train.py:  228]:	('Ner Acc', 0.99799114), ('CLS Classification Acc', 0.9758163)
+[INFO] 2022-10-01 10:01:21,072 [    train.py:  237]:	Precision 0.533 Recall 0.550 F1 0.542
+[INFO] 2022-10-01 10:02:02,080 [    train.py:  185]:	Epoch 57: 
+[INFO] 2022-10-01 10:02:02,080 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:02:02,084 [    train.py:  198]:	Loss 0.0036, ('Ner Loss', 0.0010007695527747273),  ('CLS Classification Loss', 0.0026377637404948473)
+[INFO] 2022-10-01 10:02:02,084 [    train.py:  208]:	('Ner Acc', 0.9995512962341309),  ('CLS Classification Acc', 0.9991813898086548)
+[INFO] 2022-10-01 10:02:04,358 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:02:04,359 [    train.py:  227]:	Loss 0.2318, ('Ner Loss', 0.018525196),  ('CLS Classification Loss', 0.21329707)
+[INFO] 2022-10-01 10:02:04,359 [    train.py:  228]:	('Ner Acc', 0.99788517), ('CLS Classification Acc', 0.97540504)
+[INFO] 2022-10-01 10:02:12,880 [    train.py:  237]:	Precision 0.526 Recall 0.447 F1 0.484
+[INFO] 2022-10-01 10:02:53,624 [    train.py:  185]:	Epoch 58: 
+[INFO] 2022-10-01 10:02:53,624 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:02:53,627 [    train.py:  198]:	Loss 0.0035, ('Ner Loss', 0.0009652812732383609),  ('CLS Classification Loss', 0.002560114488005638)
+[INFO] 2022-10-01 10:02:53,627 [    train.py:  208]:	('Ner Acc', 0.9996067881584167),  ('CLS Classification Acc', 0.9992182850837708)
+[INFO] 2022-10-01 10:02:55,884 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:02:55,884 [    train.py:  227]:	Loss 0.2207, ('Ner Loss', 0.018762792),  ('CLS Classification Loss', 0.20192127)
+[INFO] 2022-10-01 10:02:55,884 [    train.py:  228]:	('Ner Acc', 0.9978728), ('CLS Classification Acc', 0.97631896)
+[INFO] 2022-10-01 10:03:04,200 [    train.py:  237]:	Precision 0.528 Recall 0.475 F1 0.500
+[INFO] 2022-10-01 10:03:44,991 [    train.py:  185]:	Epoch 59: 
+[INFO] 2022-10-01 10:03:44,991 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:03:44,994 [    train.py:  198]:	Loss 0.0025, ('Ner Loss', 0.0009102893527597189),  ('CLS Classification Loss', 0.0016226910520344973)
+[INFO] 2022-10-01 10:03:44,994 [    train.py:  208]:	('Ner Acc', 0.9995872378349304),  ('CLS Classification Acc', 0.9994542002677917)
+[INFO] 2022-10-01 10:03:47,268 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:03:47,269 [    train.py:  227]:	Loss 0.2331, ('Ner Loss', 0.018831179),  ('CLS Classification Loss', 0.21430492)
+[INFO] 2022-10-01 10:03:47,269 [    train.py:  228]:	('Ner Acc', 0.9979221), ('CLS Classification Acc', 0.97580105)
+[INFO] 2022-10-01 10:03:55,807 [    train.py:  237]:	Precision 0.540 Recall 0.467 F1 0.501
+[INFO] 2022-10-01 10:04:36,722 [    train.py:  185]:	Epoch 60: 
+[INFO] 2022-10-01 10:04:36,722 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:04:36,726 [    train.py:  198]:	Loss 0.0039, ('Ner Loss', 0.0009851190261542797),  ('CLS Classification Loss', 0.002881825901567936)
+[INFO] 2022-10-01 10:04:36,726 [    train.py:  208]:	('Ner Acc', 0.999601423740387),  ('CLS Classification Acc', 0.9994171261787415)
+[INFO] 2022-10-01 10:04:39,016 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:04:39,016 [    train.py:  227]:	Loss 0.2103, ('Ner Loss', 0.017289994),  ('CLS Classification Loss', 0.19297764)
+[INFO] 2022-10-01 10:04:39,017 [    train.py:  228]:	('Ner Acc', 0.9980532), ('CLS Classification Acc', 0.9768214)
+[INFO] 2022-10-01 10:04:47,260 [    train.py:  237]:	Precision 0.562 Recall 0.479 F1 0.517
+[INFO] 2022-10-01 10:05:28,029 [    train.py:  185]:	Epoch 61: 
+[INFO] 2022-10-01 10:05:28,030 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:05:28,034 [    train.py:  198]:	Loss 0.0013, ('Ner Loss', 0.0007377251167781651),  ('CLS Classification Loss', 0.0005326863029040396)
+[INFO] 2022-10-01 10:05:28,034 [    train.py:  208]:	('Ner Acc', 0.9996836185455322),  ('CLS Classification Acc', 0.9998511075973511)
+[INFO] 2022-10-01 10:05:30,339 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:05:30,340 [    train.py:  227]:	Loss 0.2256, ('Ner Loss', 0.016650623),  ('CLS Classification Loss', 0.20890255)
+[INFO] 2022-10-01 10:05:30,340 [    train.py:  228]:	('Ner Acc', 0.9979709), ('CLS Classification Acc', 0.975527)
+[INFO] 2022-10-01 10:05:39,031 [    train.py:  237]:	Precision 0.518 Recall 0.484 F1 0.501
+[INFO] 2022-10-01 10:06:19,453 [    train.py:  185]:	Epoch 62: 
+[INFO] 2022-10-01 10:06:19,454 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:06:19,458 [    train.py:  198]:	Loss 0.0009, ('Ner Loss', 0.0006501329480670393),  ('CLS Classification Loss', 0.00021749951702076942)
+[INFO] 2022-10-01 10:06:19,458 [    train.py:  208]:	('Ner Acc', 0.999740481376648),  ('CLS Classification Acc', 0.999913215637207)
+[INFO] 2022-10-01 10:06:21,742 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:06:21,743 [    train.py:  227]:	Loss 0.2551, ('Ner Loss', 0.017155318),  ('CLS Classification Loss', 0.23789996)
+[INFO] 2022-10-01 10:06:21,743 [    train.py:  228]:	('Ner Acc', 0.9980536), ('CLS Classification Acc', 0.976593)
+[INFO] 2022-10-01 10:06:29,946 [    train.py:  237]:	Precision 0.550 Recall 0.479 F1 0.512
+[INFO] 2022-10-01 10:07:10,908 [    train.py:  185]:	Epoch 63: 
+[INFO] 2022-10-01 10:07:10,909 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:07:10,911 [    train.py:  198]:	Loss 0.0016, ('Ner Loss', 0.0005708973039872944),  ('CLS Classification Loss', 0.0010756669798865914)
+[INFO] 2022-10-01 10:07:10,911 [    train.py:  208]:	('Ner Acc', 0.9997658729553223),  ('CLS Classification Acc', 0.9997146725654602)
+[INFO] 2022-10-01 10:07:13,196 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:07:13,197 [    train.py:  227]:	Loss 0.2386, ('Ner Loss', 0.018202031),  ('CLS Classification Loss', 0.22036557)
+[INFO] 2022-10-01 10:07:13,197 [    train.py:  228]:	('Ner Acc', 0.9980049), ('CLS Classification Acc', 0.97561836)
+[INFO] 2022-10-01 10:07:21,738 [    train.py:  237]:	Precision 0.522 Recall 0.475 F1 0.497
+[INFO] 2022-10-01 10:08:02,604 [    train.py:  185]:	Epoch 64: 
+[INFO] 2022-10-01 10:08:02,604 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:08:02,609 [    train.py:  198]:	Loss 0.0010, ('Ner Loss', 0.0004988273722119629),  ('CLS Classification Loss', 0.0005242846091277897)
+[INFO] 2022-10-01 10:08:02,609 [    train.py:  208]:	('Ner Acc', 0.9997983574867249),  ('CLS Classification Acc', 0.9998759627342224)
+[INFO] 2022-10-01 10:08:04,873 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:08:04,874 [    train.py:  227]:	Loss 0.2393, ('Ner Loss', 0.018047443),  ('CLS Classification Loss', 0.22123267)
+[INFO] 2022-10-01 10:08:04,874 [    train.py:  228]:	('Ner Acc', 0.99805653), ('CLS Classification Acc', 0.9754508)
+[INFO] 2022-10-01 10:08:13,026 [    train.py:  237]:	Precision 0.529 Recall 0.473 F1 0.500
+[INFO] 2022-10-01 10:08:54,030 [    train.py:  185]:	Epoch 65: 
+[INFO] 2022-10-01 10:08:54,030 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:08:54,034 [    train.py:  198]:	Loss 0.0019, ('Ner Loss', 0.000592911324929446),  ('CLS Classification Loss', 0.0012842215364798903)
+[INFO] 2022-10-01 10:08:54,034 [    train.py:  208]:	('Ner Acc', 0.9997444152832031),  ('CLS Classification Acc', 0.9995905160903931)
+[INFO] 2022-10-01 10:08:56,318 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:08:56,319 [    train.py:  227]:	Loss 0.2389, ('Ner Loss', 0.018143784),  ('CLS Classification Loss', 0.22073236)
+[INFO] 2022-10-01 10:08:56,319 [    train.py:  228]:	('Ner Acc', 0.99792784), ('CLS Classification Acc', 0.97444564)
+[INFO] 2022-10-01 10:09:04,505 [    train.py:  237]:	Precision 0.539 Recall 0.454 F1 0.493
+[INFO] 2022-10-01 10:09:45,471 [    train.py:  185]:	Epoch 66: 
+[INFO] 2022-10-01 10:09:45,472 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:09:45,478 [    train.py:  198]:	Loss 0.0035, ('Ner Loss', 0.0007701923022978008),  ('CLS Classification Loss', 0.002776559442281723)
+[INFO] 2022-10-01 10:09:45,478 [    train.py:  208]:	('Ner Acc', 0.9996844530105591),  ('CLS Classification Acc', 0.9991562962532043)
+[INFO] 2022-10-01 10:09:47,742 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:09:47,743 [    train.py:  227]:	Loss 0.2158, ('Ner Loss', 0.017156085),  ('CLS Classification Loss', 0.1986249)
+[INFO] 2022-10-01 10:09:47,743 [    train.py:  228]:	('Ner Acc', 0.9979282), ('CLS Classification Acc', 0.97360814)
+[INFO] 2022-10-01 10:09:55,947 [    train.py:  237]:	Precision 0.501 Recall 0.523 F1 0.512
+[INFO] 2022-10-01 10:10:36,574 [    train.py:  185]:	Epoch 67: 
+[INFO] 2022-10-01 10:10:36,575 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:10:36,578 [    train.py:  198]:	Loss 0.0021, ('Ner Loss', 0.0006000958383083344),  ('CLS Classification Loss', 0.0014800449134781957)
+[INFO] 2022-10-01 10:10:36,579 [    train.py:  208]:	('Ner Acc', 0.9997379779815674),  ('CLS Classification Acc', 0.9995656609535217)
+[INFO] 2022-10-01 10:10:38,850 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:10:38,851 [    train.py:  227]:	Loss 0.2232, ('Ner Loss', 0.017911896),  ('CLS Classification Loss', 0.20528646)
+[INFO] 2022-10-01 10:10:38,851 [    train.py:  228]:	('Ner Acc', 0.9979816), ('CLS Classification Acc', 0.974461)
+[INFO] 2022-10-01 10:10:47,127 [    train.py:  237]:	Precision 0.534 Recall 0.508 F1 0.520
+[INFO] 2022-10-01 10:11:27,825 [    train.py:  185]:	Epoch 68: 
+[INFO] 2022-10-01 10:11:27,826 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:11:27,828 [    train.py:  198]:	Loss 0.0012, ('Ner Loss', 0.0005007871077395976),  ('CLS Classification Loss', 0.0007401558104902506)
+[INFO] 2022-10-01 10:11:27,829 [    train.py:  208]:	('Ner Acc', 0.9998056888580322),  ('CLS Classification Acc', 0.9997518062591553)
+[INFO] 2022-10-01 10:11:30,202 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:11:30,202 [    train.py:  227]:	Loss 0.2406, ('Ner Loss', 0.019166239),  ('CLS Classification Loss', 0.22146285)
+[INFO] 2022-10-01 10:11:30,203 [    train.py:  228]:	('Ner Acc', 0.99795854), ('CLS Classification Acc', 0.9743086)
+[INFO] 2022-10-01 10:11:39,176 [    train.py:  237]:	Precision 0.514 Recall 0.486 F1 0.500
+[INFO] 2022-10-01 10:12:19,789 [    train.py:  185]:	Epoch 69: 
+[INFO] 2022-10-01 10:12:19,789 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:12:19,792 [    train.py:  198]:	Loss 0.0013, ('Ner Loss', 0.00044566980795934796),  ('CLS Classification Loss', 0.0008605342591181397)
+[INFO] 2022-10-01 10:12:19,792 [    train.py:  208]:	('Ner Acc', 0.9998105764389038),  ('CLS Classification Acc', 0.9997766613960266)
+[INFO] 2022-10-01 10:12:22,059 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:12:22,060 [    train.py:  227]:	Loss 0.2327, ('Ner Loss', 0.019403864),  ('CLS Classification Loss', 0.21326607)
+[INFO] 2022-10-01 10:12:22,060 [    train.py:  228]:	('Ner Acc', 0.99807626), ('CLS Classification Acc', 0.9760143)
+[INFO] 2022-10-01 10:12:30,263 [    train.py:  237]:	Precision 0.541 Recall 0.493 F1 0.516
+[INFO] 2022-10-01 10:13:10,951 [    train.py:  185]:	Epoch 70: 
+[INFO] 2022-10-01 10:13:10,951 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:13:10,955 [    train.py:  198]:	Loss 0.0011, ('Ner Loss', 0.0004353041003923863),  ('CLS Classification Loss', 0.0006379631231538951)
+[INFO] 2022-10-01 10:13:10,955 [    train.py:  208]:	('Ner Acc', 0.9998191595077515),  ('CLS Classification Acc', 0.9998013973236084)
+[INFO] 2022-10-01 10:13:13,224 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:13:13,225 [    train.py:  227]:	Loss 0.2397, ('Ner Loss', 0.019270256),  ('CLS Classification Loss', 0.22039366)
+[INFO] 2022-10-01 10:13:13,225 [    train.py:  228]:	('Ner Acc', 0.9980271), ('CLS Classification Acc', 0.9761512)
+[INFO] 2022-10-01 10:13:21,674 [    train.py:  237]:	Precision 0.534 Recall 0.511 F1 0.522
+[INFO] 2022-10-01 10:14:02,668 [    train.py:  185]:	Epoch 71: 
+[INFO] 2022-10-01 10:14:02,668 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:14:02,672 [    train.py:  198]:	Loss 0.0009, ('Ner Loss', 0.0003884515317622572),  ('CLS Classification Loss', 0.0005251752445474267)
+[INFO] 2022-10-01 10:14:02,672 [    train.py:  208]:	('Ner Acc', 0.9998447895050049),  ('CLS Classification Acc', 0.9998635649681091)
+[INFO] 2022-10-01 10:14:04,946 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:14:04,947 [    train.py:  227]:	Loss 0.2635, ('Ner Loss', 0.02080616),  ('CLS Classification Loss', 0.24269503)
+[INFO] 2022-10-01 10:14:04,947 [    train.py:  228]:	('Ner Acc', 0.997944), ('CLS Classification Acc', 0.97459793)
+[INFO] 2022-10-01 10:14:13,075 [    train.py:  237]:	Precision 0.534 Recall 0.462 F1 0.495
+[INFO] 2022-10-01 10:14:53,957 [    train.py:  185]:	Epoch 72: 
+[INFO] 2022-10-01 10:14:53,958 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:14:53,963 [    train.py:  198]:	Loss 0.0006, ('Ner Loss', 0.00035403313813731074),  ('CLS Classification Loss', 0.0002746226964518428)
+[INFO] 2022-10-01 10:14:53,964 [    train.py:  208]:	('Ner Acc', 0.9998564720153809),  ('CLS Classification Acc', 0.9999380111694336)
+[INFO] 2022-10-01 10:14:56,247 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:14:56,248 [    train.py:  227]:	Loss 0.2482, ('Ner Loss', 0.020469036),  ('CLS Classification Loss', 0.22774954)
+[INFO] 2022-10-01 10:14:56,248 [    train.py:  228]:	('Ner Acc', 0.99803996), ('CLS Classification Acc', 0.9771869)
+[INFO] 2022-10-01 10:15:04,750 [    train.py:  237]:	Precision 0.557 Recall 0.489 F1 0.521
+[INFO] 2022-10-01 10:15:45,693 [    train.py:  185]:	Epoch 73: 
+[INFO] 2022-10-01 10:15:45,693 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:15:45,696 [    train.py:  198]:	Loss 0.0005, ('Ner Loss', 0.000322453590342775),  ('CLS Classification Loss', 0.0001394711434841156)
+[INFO] 2022-10-01 10:15:45,696 [    train.py:  208]:	('Ner Acc', 0.9998651742935181),  ('CLS Classification Acc', 0.9999504089355469)
+[INFO] 2022-10-01 10:15:47,976 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:15:47,977 [    train.py:  227]:	Loss 0.2579, ('Ner Loss', 0.020799374),  ('CLS Classification Loss', 0.23705372)
+[INFO] 2022-10-01 10:15:47,977 [    train.py:  228]:	('Ner Acc', 0.9980077), ('CLS Classification Acc', 0.9768671)
+[INFO] 2022-10-01 10:15:56,167 [    train.py:  237]:	Precision 0.548 Recall 0.484 F1 0.514
+[INFO] 2022-10-01 10:16:36,624 [    train.py:  185]:	Epoch 74: 
+[INFO] 2022-10-01 10:16:36,625 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:16:36,628 [    train.py:  198]:	Loss 0.0012, ('Ner Loss', 0.0003551669651642442),  ('CLS Classification Loss', 0.0008203023462556303)
+[INFO] 2022-10-01 10:16:36,628 [    train.py:  208]:	('Ner Acc', 0.9998579025268555),  ('CLS Classification Acc', 0.9997022151947021)
+[INFO] 2022-10-01 10:16:38,892 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:16:38,893 [    train.py:  227]:	Loss 0.2408, ('Ner Loss', 0.018390303),  ('CLS Classification Loss', 0.22243708)
+[INFO] 2022-10-01 10:16:38,893 [    train.py:  228]:	('Ner Acc', 0.997922), ('CLS Classification Acc', 0.9752529)
+[INFO] 2022-10-01 10:16:47,355 [    train.py:  237]:	Precision 0.524 Recall 0.496 F1 0.509
+[INFO] 2022-10-01 10:17:27,818 [    train.py:  185]:	Epoch 75: 
+[INFO] 2022-10-01 10:17:27,818 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:17:27,820 [    train.py:  198]:	Loss 0.0034, ('Ner Loss', 0.0005568740307353437),  ('CLS Classification Loss', 0.0028629773296415806)
+[INFO] 2022-10-01 10:17:27,821 [    train.py:  208]:	('Ner Acc', 0.9997959733009338),  ('CLS Classification Acc', 0.9992682337760925)
+[INFO] 2022-10-01 10:17:30,144 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:17:30,144 [    train.py:  227]:	Loss 0.2127, ('Ner Loss', 0.018837284),  ('CLS Classification Loss', 0.19384985)
+[INFO] 2022-10-01 10:17:30,145 [    train.py:  228]:	('Ner Acc', 0.9980756), ('CLS Classification Acc', 0.9763797)
+[INFO] 2022-10-01 10:17:38,700 [    train.py:  237]:	Precision 0.542 Recall 0.493 F1 0.516
+[INFO] 2022-10-01 10:18:19,390 [    train.py:  185]:	Epoch 76: 
+[INFO] 2022-10-01 10:18:19,391 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:18:19,393 [    train.py:  198]:	Loss 0.0023, ('Ner Loss', 0.0004492469597607851),  ('CLS Classification Loss', 0.0018494674004614353)
+[INFO] 2022-10-01 10:18:19,394 [    train.py:  208]:	('Ner Acc', 0.999829888343811),  ('CLS Classification Acc', 0.9994293451309204)
+[INFO] 2022-10-01 10:18:21,660 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:18:21,660 [    train.py:  227]:	Loss 0.2359, ('Ner Loss', 0.01956867),  ('CLS Classification Loss', 0.21633303)
+[INFO] 2022-10-01 10:18:21,661 [    train.py:  228]:	('Ner Acc', 0.9979817), ('CLS Classification Acc', 0.97432375)
+[INFO] 2022-10-01 10:18:30,075 [    train.py:  237]:	Precision 0.505 Recall 0.490 F1 0.498
+[INFO] 2022-10-01 10:19:10,774 [    train.py:  185]:	Epoch 77: 
+[INFO] 2022-10-01 10:19:10,774 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:19:10,780 [    train.py:  198]:	Loss 0.0015, ('Ner Loss', 0.00036552074016071856),  ('CLS Classification Loss', 0.001132988021709025)
+[INFO] 2022-10-01 10:19:10,780 [    train.py:  208]:	('Ner Acc', 0.999873161315918),  ('CLS Classification Acc', 0.999801516532898)
+[INFO] 2022-10-01 10:19:13,052 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:19:13,052 [    train.py:  227]:	Loss 0.2422, ('Ner Loss', 0.01814219),  ('CLS Classification Loss', 0.22403772)
+[INFO] 2022-10-01 10:19:13,053 [    train.py:  228]:	('Ner Acc', 0.9979572), ('CLS Classification Acc', 0.97510046)
+[INFO] 2022-10-01 10:19:21,418 [    train.py:  237]:	Precision 0.528 Recall 0.496 F1 0.511
+[INFO] 2022-10-01 10:20:02,355 [    train.py:  185]:	Epoch 78: 
+[INFO] 2022-10-01 10:20:02,356 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:20:02,359 [    train.py:  198]:	Loss 0.0019, ('Ner Loss', 0.000347116932971403),  ('CLS Classification Loss', 0.0015299908118322492)
+[INFO] 2022-10-01 10:20:02,359 [    train.py:  208]:	('Ner Acc', 0.9998700618743896),  ('CLS Classification Acc', 0.9996652007102966)
+[INFO] 2022-10-01 10:20:04,610 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:20:04,611 [    train.py:  227]:	Loss 0.2145, ('Ner Loss', 0.019049518),  ('CLS Classification Loss', 0.19546247)
+[INFO] 2022-10-01 10:20:04,611 [    train.py:  228]:	('Ner Acc', 0.99790454), ('CLS Classification Acc', 0.9739887)
+[INFO] 2022-10-01 10:20:12,882 [    train.py:  237]:	Precision 0.495 Recall 0.485 F1 0.490
+[INFO] 2022-10-01 10:20:53,371 [    train.py:  185]:	Epoch 79: 
+[INFO] 2022-10-01 10:20:53,371 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:20:53,374 [    train.py:  198]:	Loss 0.0019, ('Ner Loss', 0.00037099383189342916),  ('CLS Classification Loss', 0.0015192399732768536)
+[INFO] 2022-10-01 10:20:53,375 [    train.py:  208]:	('Ner Acc', 0.9998655915260315),  ('CLS Classification Acc', 0.9995906352996826)
+[INFO] 2022-10-01 10:20:55,674 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:20:55,674 [    train.py:  227]:	Loss 0.2173, ('Ner Loss', 0.017920004),  ('CLS Classification Loss', 0.19934762)
+[INFO] 2022-10-01 10:20:55,674 [    train.py:  228]:	('Ner Acc', 0.9980577), ('CLS Classification Acc', 0.9760447)
+[INFO] 2022-10-01 10:21:03,927 [    train.py:  237]:	Precision 0.533 Recall 0.533 F1 0.533
+[INFO] 2022-10-01 10:21:45,110 [    train.py:  185]:	Epoch 80: 
+[INFO] 2022-10-01 10:21:45,110 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:21:45,114 [    train.py:  198]:	Loss 0.0022, ('Ner Loss', 0.00041497856727801263),  ('CLS Classification Loss', 0.0017368764383718371)
+[INFO] 2022-10-01 10:21:45,114 [    train.py:  208]:	('Ner Acc', 0.9998505711555481),  ('CLS Classification Acc', 0.9995038509368896)
+[INFO] 2022-10-01 10:21:47,376 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:21:47,376 [    train.py:  227]:	Loss 0.2170, ('Ner Loss', 0.017590066),  ('CLS Classification Loss', 0.1994563)
+[INFO] 2022-10-01 10:21:47,377 [    train.py:  228]:	('Ner Acc', 0.998047), ('CLS Classification Acc', 0.97491777)
+[INFO] 2022-10-01 10:21:56,143 [    train.py:  237]:	Precision 0.520 Recall 0.470 F1 0.494
+[INFO] 2022-10-01 10:22:36,747 [    train.py:  185]:	Epoch 81: 
+[INFO] 2022-10-01 10:22:36,748 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:22:36,751 [    train.py:  198]:	Loss 0.0015, ('Ner Loss', 0.00030128256184980273),  ('CLS Classification Loss', 0.001200032769702375)
+[INFO] 2022-10-01 10:22:36,751 [    train.py:  208]:	('Ner Acc', 0.9998857975006104),  ('CLS Classification Acc', 0.9996402263641357)
+[INFO] 2022-10-01 10:22:39,033 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:22:39,034 [    train.py:  227]:	Loss 0.2346, ('Ner Loss', 0.018381406),  ('CLS Classification Loss', 0.2162194)
+[INFO] 2022-10-01 10:22:39,034 [    train.py:  228]:	('Ner Acc', 0.99798334), ('CLS Classification Acc', 0.97455215)
+[INFO] 2022-10-01 10:22:47,546 [    train.py:  237]:	Precision 0.528 Recall 0.479 F1 0.502
+[INFO] 2022-10-01 10:23:28,362 [    train.py:  185]:	Epoch 82: 
+[INFO] 2022-10-01 10:23:28,362 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:23:28,371 [    train.py:  198]:	Loss 0.0012, ('Ner Loss', 0.00037955434527248144),  ('CLS Classification Loss', 0.0007704616873525083)
+[INFO] 2022-10-01 10:23:28,371 [    train.py:  208]:	('Ner Acc', 0.9998735785484314),  ('CLS Classification Acc', 0.9998262524604797)
+[INFO] 2022-10-01 10:23:30,689 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:23:30,689 [    train.py:  227]:	Loss 0.2228, ('Ner Loss', 0.017476419),  ('CLS Classification Loss', 0.20529765)
+[INFO] 2022-10-01 10:23:30,690 [    train.py:  228]:	('Ner Acc', 0.99801505), ('CLS Classification Acc', 0.9754965)
+[INFO] 2022-10-01 10:23:39,191 [    train.py:  237]:	Precision 0.528 Recall 0.496 F1 0.512
+[INFO] 2022-10-01 10:24:19,730 [    train.py:  185]:	Epoch 83: 
+[INFO] 2022-10-01 10:24:19,730 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:24:19,735 [    train.py:  198]:	Loss 0.0010, ('Ner Loss', 0.00028964856755919755),  ('CLS Classification Loss', 0.0007131103193387389)
+[INFO] 2022-10-01 10:24:19,735 [    train.py:  208]:	('Ner Acc', 0.9998951554298401),  ('CLS Classification Acc', 0.9998635649681091)
+[INFO] 2022-10-01 10:24:22,008 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:24:22,009 [    train.py:  227]:	Loss 0.2276, ('Ner Loss', 0.017139884),  ('CLS Classification Loss', 0.21041772)
+[INFO] 2022-10-01 10:24:22,009 [    train.py:  228]:	('Ner Acc', 0.9980203), ('CLS Classification Acc', 0.9750244)
+[INFO] 2022-10-01 10:24:30,466 [    train.py:  237]:	Precision 0.522 Recall 0.484 F1 0.502
+[INFO] 2022-10-01 10:25:11,261 [    train.py:  185]:	Epoch 84: 
+[INFO] 2022-10-01 10:25:11,262 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:25:11,265 [    train.py:  198]:	Loss 0.0011, ('Ner Loss', 0.0002534052764531225),  ('CLS Classification Loss', 0.0008339218911714852)
+[INFO] 2022-10-01 10:25:11,265 [    train.py:  208]:	('Ner Acc', 0.9999086856842041),  ('CLS Classification Acc', 0.999813973903656)
+[INFO] 2022-10-01 10:25:13,517 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:25:13,517 [    train.py:  227]:	Loss 0.2485, ('Ner Loss', 0.018428495),  ('CLS Classification Loss', 0.23003864)
+[INFO] 2022-10-01 10:25:13,518 [    train.py:  228]:	('Ner Acc', 0.9980359), ('CLS Classification Acc', 0.9765929)
+[INFO] 2022-10-01 10:25:21,967 [    train.py:  237]:	Precision 0.557 Recall 0.462 F1 0.505
+[INFO] 2022-10-01 10:26:02,870 [    train.py:  185]:	Epoch 85: 
+[INFO] 2022-10-01 10:26:02,870 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:26:02,874 [    train.py:  198]:	Loss 0.0007, ('Ner Loss', 0.00024579730234108865),  ('CLS Classification Loss', 0.0004281858273316175)
+[INFO] 2022-10-01 10:26:02,874 [    train.py:  208]:	('Ner Acc', 0.9999175071716309),  ('CLS Classification Acc', 0.9998511075973511)
+[INFO] 2022-10-01 10:26:05,153 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:26:05,154 [    train.py:  227]:	Loss 0.2430, ('Ner Loss', 0.017379707),  ('CLS Classification Loss', 0.22558327)
+[INFO] 2022-10-01 10:26:05,154 [    train.py:  228]:	('Ner Acc', 0.9979823), ('CLS Classification Acc', 0.97581625)
+[INFO] 2022-10-01 10:26:13,708 [    train.py:  237]:	Precision 0.520 Recall 0.499 F1 0.510
+[INFO] 2022-10-01 10:26:54,396 [    train.py:  185]:	Epoch 86: 
+[INFO] 2022-10-01 10:26:54,396 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:26:54,403 [    train.py:  198]:	Loss 0.0004, ('Ner Loss', 0.00020869240688625723),  ('CLS Classification Loss', 0.000233643309911713)
+[INFO] 2022-10-01 10:26:54,403 [    train.py:  208]:	('Ner Acc', 0.9999170303344727),  ('CLS Classification Acc', 0.999913215637207)
+[INFO] 2022-10-01 10:26:56,686 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:26:56,686 [    train.py:  227]:	Loss 0.2542, ('Ner Loss', 0.017204998),  ('CLS Classification Loss', 0.2369493)
+[INFO] 2022-10-01 10:26:56,687 [    train.py:  228]:	('Ner Acc', 0.9980833), ('CLS Classification Acc', 0.9765167)
+[INFO] 2022-10-01 10:27:05,079 [    train.py:  237]:	Precision 0.535 Recall 0.495 F1 0.514
+[INFO] 2022-10-01 10:27:45,783 [    train.py:  185]:	Epoch 87: 
+[INFO] 2022-10-01 10:27:45,784 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:27:45,786 [    train.py:  198]:	Loss 0.0016, ('Ner Loss', 0.00027981449966318905),  ('CLS Classification Loss', 0.0013352481182664633)
+[INFO] 2022-10-01 10:27:45,786 [    train.py:  208]:	('Ner Acc', 0.9998875260353088),  ('CLS Classification Acc', 0.9995906352996826)
+[INFO] 2022-10-01 10:27:48,042 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:27:48,043 [    train.py:  227]:	Loss 0.2147, ('Ner Loss', 0.016405001),  ('CLS Classification Loss', 0.19825757)
+[INFO] 2022-10-01 10:27:48,043 [    train.py:  228]:	('Ner Acc', 0.9980809), ('CLS Classification Acc', 0.9773392)
+[INFO] 2022-10-01 10:27:56,124 [    train.py:  237]:	Precision 0.558 Recall 0.508 F1 0.532
+[INFO] 2022-10-01 10:28:36,561 [    train.py:  185]:	Epoch 88: 
+[INFO] 2022-10-01 10:28:36,562 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:28:36,564 [    train.py:  198]:	Loss 0.0035, ('Ner Loss', 0.000421529752202332),  ('CLS Classification Loss', 0.0031051351688802242)
+[INFO] 2022-10-01 10:28:36,565 [    train.py:  208]:	('Ner Acc', 0.9998392462730408),  ('CLS Classification Acc', 0.9990323781967163)
+[INFO] 2022-10-01 10:28:38,779 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:28:38,779 [    train.py:  227]:	Loss 0.2480, ('Ner Loss', 0.019014107),  ('CLS Classification Loss', 0.22903152)
+[INFO] 2022-10-01 10:28:38,779 [    train.py:  228]:	('Ner Acc', 0.9979126), ('CLS Classification Acc', 0.9742172)
+[INFO] 2022-10-01 10:28:47,012 [    train.py:  237]:	Precision 0.523 Recall 0.463 F1 0.491
+[INFO] 2022-10-01 10:29:27,465 [    train.py:  185]:	Epoch 89: 
+[INFO] 2022-10-01 10:29:27,465 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:29:27,471 [    train.py:  198]:	Loss 0.0029, ('Ner Loss', 0.00038854219019412994),  ('CLS Classification Loss', 0.002489038510248065)
+[INFO] 2022-10-01 10:29:27,471 [    train.py:  208]:	('Ner Acc', 0.9998604655265808),  ('CLS Classification Acc', 0.9993302226066589)
+[INFO] 2022-10-01 10:29:29,784 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:29:29,785 [    train.py:  227]:	Loss 0.2513, ('Ner Loss', 0.017700996),  ('CLS Classification Loss', 0.2335993)
+[INFO] 2022-10-01 10:29:29,785 [    train.py:  228]:	('Ner Acc', 0.9980233), ('CLS Classification Acc', 0.9741258)
+[INFO] 2022-10-01 10:29:38,447 [    train.py:  237]:	Precision 0.525 Recall 0.480 F1 0.502
+[INFO] 2022-10-01 10:30:18,933 [    train.py:  185]:	Epoch 90: 
+[INFO] 2022-10-01 10:30:18,934 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:30:18,936 [    train.py:  198]:	Loss 0.0023, ('Ner Loss', 0.00033044785959646106),  ('CLS Classification Loss', 0.001924015348777175)
+[INFO] 2022-10-01 10:30:18,936 [    train.py:  208]:	('Ner Acc', 0.9998863339424133),  ('CLS Classification Acc', 0.9994542002677917)
+[INFO] 2022-10-01 10:30:21,200 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:30:21,201 [    train.py:  227]:	Loss 0.2294, ('Ner Loss', 0.017108697),  ('CLS Classification Loss', 0.21229945)
+[INFO] 2022-10-01 10:30:21,201 [    train.py:  228]:	('Ner Acc', 0.9980121), ('CLS Classification Acc', 0.97494817)
+[INFO] 2022-10-01 10:30:29,263 [    train.py:  237]:	Precision 0.536 Recall 0.496 F1 0.515
+[INFO] 2022-10-01 10:31:09,737 [    train.py:  185]:	Epoch 91: 
+[INFO] 2022-10-01 10:31:09,738 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:31:09,745 [    train.py:  198]:	Loss 0.0021, ('Ner Loss', 0.0002650054229889065),  ('CLS Classification Loss', 0.0017874168697744608)
+[INFO] 2022-10-01 10:31:09,745 [    train.py:  208]:	('Ner Acc', 0.9998999238014221),  ('CLS Classification Acc', 0.9995906352996826)
+[INFO] 2022-10-01 10:31:11,998 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:31:11,998 [    train.py:  227]:	Loss 0.2171, ('Ner Loss', 0.016346773),  ('CLS Classification Loss', 0.20075011)
+[INFO] 2022-10-01 10:31:11,999 [    train.py:  228]:	('Ner Acc', 0.9981424), ('CLS Classification Acc', 0.9770345)
+[INFO] 2022-10-01 10:31:20,220 [    train.py:  237]:	Precision 0.553 Recall 0.504 F1 0.527
+[INFO] 2022-10-01 10:32:01,230 [    train.py:  185]:	Epoch 92: 
+[INFO] 2022-10-01 10:32:01,230 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:32:01,233 [    train.py:  198]:	Loss 0.0006, ('Ner Loss', 0.0002044748980551958),  ('CLS Classification Loss', 0.0003866979095619172)
+[INFO] 2022-10-01 10:32:01,233 [    train.py:  208]:	('Ner Acc', 0.9999318718910217),  ('CLS Classification Acc', 0.9998511075973511)
+[INFO] 2022-10-01 10:32:03,494 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:32:03,495 [    train.py:  227]:	Loss 0.2517, ('Ner Loss', 0.016927177),  ('CLS Classification Loss', 0.23474808)
+[INFO] 2022-10-01 10:32:03,495 [    train.py:  228]:	('Ner Acc', 0.9980846), ('CLS Classification Acc', 0.9764102)
+[INFO] 2022-10-01 10:32:11,606 [    train.py:  237]:	Precision 0.554 Recall 0.470 F1 0.508
+[INFO] 2022-10-01 10:32:52,177 [    train.py:  185]:	Epoch 93: 
+[INFO] 2022-10-01 10:32:52,177 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:32:52,180 [    train.py:  198]:	Loss 0.0005, ('Ner Loss', 0.00016145958215929568),  ('CLS Classification Loss', 0.00029425896354950964)
+[INFO] 2022-10-01 10:32:52,180 [    train.py:  208]:	('Ner Acc', 0.9999440908432007),  ('CLS Classification Acc', 0.999925434589386)
+[INFO] 2022-10-01 10:32:54,466 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:32:54,467 [    train.py:  227]:	Loss 0.2538, ('Ner Loss', 0.017601542),  ('CLS Classification Loss', 0.23620683)
+[INFO] 2022-10-01 10:32:54,467 [    train.py:  228]:	('Ner Acc', 0.99798673), ('CLS Classification Acc', 0.9767757)
+[INFO] 2022-10-01 10:33:02,726 [    train.py:  237]:	Precision 0.537 Recall 0.489 F1 0.512
+[INFO] 2022-10-01 10:33:43,643 [    train.py:  185]:	Epoch 94: 
+[INFO] 2022-10-01 10:33:43,643 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:33:43,647 [    train.py:  198]:	Loss 0.0009, ('Ner Loss', 0.00019377990975044668),  ('CLS Classification Loss', 0.0006929595838300884)
+[INFO] 2022-10-01 10:33:43,648 [    train.py:  208]:	('Ner Acc', 0.9999330639839172),  ('CLS Classification Acc', 0.9998262524604797)
+[INFO] 2022-10-01 10:33:45,916 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:33:45,917 [    train.py:  227]:	Loss 0.2626, ('Ner Loss', 0.01940344),  ('CLS Classification Loss', 0.24318248)
+[INFO] 2022-10-01 10:33:45,917 [    train.py:  228]:	('Ner Acc', 0.9980076), ('CLS Classification Acc', 0.97598386)
+[INFO] 2022-10-01 10:33:54,103 [    train.py:  237]:	Precision 0.560 Recall 0.457 F1 0.503
+[INFO] 2022-10-01 10:34:34,720 [    train.py:  185]:	Epoch 95: 
+[INFO] 2022-10-01 10:34:34,720 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:34:34,724 [    train.py:  198]:	Loss 0.0011, ('Ner Loss', 0.00022844311024527997),  ('CLS Classification Loss', 0.0008845987031236291)
+[INFO] 2022-10-01 10:34:34,724 [    train.py:  208]:	('Ner Acc', 0.9999209642410278),  ('CLS Classification Acc', 0.9997766613960266)
+[INFO] 2022-10-01 10:34:36,994 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:34:36,995 [    train.py:  227]:	Loss 0.2304, ('Ner Loss', 0.01791801),  ('CLS Classification Loss', 0.21249093)
+[INFO] 2022-10-01 10:34:36,995 [    train.py:  228]:	('Ner Acc', 0.99806774), ('CLS Classification Acc', 0.97669953)
+[INFO] 2022-10-01 10:34:45,112 [    train.py:  237]:	Precision 0.549 Recall 0.511 F1 0.529
+[INFO] 2022-10-01 10:35:25,560 [    train.py:  185]:	Epoch 96: 
+[INFO] 2022-10-01 10:35:25,560 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:35:25,563 [    train.py:  198]:	Loss 0.0013, ('Ner Loss', 0.00025200791424140334),  ('CLS Classification Loss', 0.0010008156532421708)
+[INFO] 2022-10-01 10:35:25,564 [    train.py:  208]:	('Ner Acc', 0.9999030232429504),  ('CLS Classification Acc', 0.9997517466545105)
+[INFO] 2022-10-01 10:35:27,834 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:35:27,835 [    train.py:  227]:	Loss 0.2255, ('Ner Loss', 0.017594574),  ('CLS Classification Loss', 0.2078617)
+[INFO] 2022-10-01 10:35:27,835 [    train.py:  228]:	('Ner Acc', 0.9978488), ('CLS Classification Acc', 0.97580105)
+[INFO] 2022-10-01 10:35:36,772 [    train.py:  237]:	Precision 0.519 Recall 0.503 F1 0.511
+[INFO] 2022-10-01 10:36:17,301 [    train.py:  185]:	Epoch 97: 
+[INFO] 2022-10-01 10:36:17,301 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:36:17,304 [    train.py:  198]:	Loss 0.0011, ('Ner Loss', 0.00023334338038694113),  ('CLS Classification Loss', 0.000818628934212029)
+[INFO] 2022-10-01 10:36:17,305 [    train.py:  208]:	('Ner Acc', 0.9999189376831055),  ('CLS Classification Acc', 0.9997767806053162)
+[INFO] 2022-10-01 10:36:19,573 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:36:19,573 [    train.py:  227]:	Loss 0.2356, ('Ner Loss', 0.01650111),  ('CLS Classification Loss', 0.21905562)
+[INFO] 2022-10-01 10:36:19,574 [    train.py:  228]:	('Ner Acc', 0.9980331), ('CLS Classification Acc', 0.9765321)
+[INFO] 2022-10-01 10:36:28,205 [    train.py:  237]:	Precision 0.557 Recall 0.465 F1 0.507
+[INFO] 2022-10-01 10:37:08,763 [    train.py:  185]:	Epoch 98: 
+[INFO] 2022-10-01 10:37:08,763 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:37:08,766 [    train.py:  198]:	Loss 0.0007, ('Ner Loss', 0.00018113429541699588),  ('CLS Classification Loss', 0.0005001344834454358)
+[INFO] 2022-10-01 10:37:08,766 [    train.py:  208]:	('Ner Acc', 0.9999290704727173),  ('CLS Classification Acc', 0.999813973903656)
+[INFO] 2022-10-01 10:37:11,027 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:37:11,028 [    train.py:  227]:	Loss 0.2306, ('Ner Loss', 0.01745833),  ('CLS Classification Loss', 0.21319129)
+[INFO] 2022-10-01 10:37:11,028 [    train.py:  228]:	('Ner Acc', 0.9980218), ('CLS Classification Acc', 0.9772173)
+[INFO] 2022-10-01 10:37:19,207 [    train.py:  237]:	Precision 0.536 Recall 0.511 F1 0.523
+[INFO] 2022-10-01 10:37:59,960 [    train.py:  185]:	Epoch 99: 
+[INFO] 2022-10-01 10:37:59,961 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:37:59,968 [    train.py:  198]:	Loss 0.0010, ('Ner Loss', 0.00015133354463614523),  ('CLS Classification Loss', 0.0008044180576689541)
+[INFO] 2022-10-01 10:37:59,968 [    train.py:  208]:	('Ner Acc', 0.9999434351921082),  ('CLS Classification Acc', 0.9997889995574951)
+[INFO] 2022-10-01 10:38:02,236 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:38:02,237 [    train.py:  227]:	Loss 0.2406, ('Ner Loss', 0.017522011),  ('CLS Classification Loss', 0.22310694)
+[INFO] 2022-10-01 10:38:02,237 [    train.py:  228]:	('Ner Acc', 0.9980482), ('CLS Classification Acc', 0.976532)
+[INFO] 2022-10-01 10:38:10,606 [    train.py:  237]:	Precision 0.537 Recall 0.469 F1 0.501
+[INFO] 2022-10-01 10:38:51,288 [    train.py:  185]:	Epoch 100: 
+[INFO] 2022-10-01 10:38:51,289 [    train.py:  186]:	Train:
+[INFO] 2022-10-01 10:38:51,291 [    train.py:  198]:	Loss 0.0019, ('Ner Loss', 0.0003143465437460691),  ('CLS Classification Loss', 0.001600074116140604)
+[INFO] 2022-10-01 10:38:51,291 [    train.py:  208]:	('Ner Acc', 0.9999092221260071),  ('CLS Classification Acc', 0.9994912147521973)
+[INFO] 2022-10-01 10:38:53,563 [    train.py:  220]:	Evaluate:
+[INFO] 2022-10-01 10:38:53,564 [    train.py:  227]:	Loss 0.2131, ('Ner Loss', 0.016614135),  ('CLS Classification Loss', 0.19647704)
+[INFO] 2022-10-01 10:38:53,564 [    train.py:  228]:	('Ner Acc', 0.99799657), ('CLS Classification Acc', 0.9766386)
+[INFO] 2022-10-01 10:39:01,665 [    train.py:  237]:	Precision 0.549 Recall 0.457 F1 0.499
+[INFO] 2022-10-01 10:39:01,665 [    train.py:  257]:	Best Epoch 49; Best f1 0.5461300309597523 precision 0.5727272727272728 recall 0.5218934911242603;

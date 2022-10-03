@@ -13,7 +13,7 @@ from transformers import BertConfig
 class BuildCRF(tfa.layers.CRF):
 
     def build(self, input_shape):
-        self._dense_layer.build(input_shape)
+        # self._dense_layer.build(input_shape)
         super(BuildCRF, self).build(input_shape)
 
 
@@ -37,8 +37,13 @@ class TargetExtractionBlock(Layer):
     def __init__(self, hidden_size, num_classes=5, dropout=0.3, **kwargs):
         super(TargetExtractionBlock, self).__init__(**kwargs)
         self.hidden_size = hidden_size
-        self.linear_transform = keras.layers.Dense(hidden_size, activation='relu')
-        self.crf = BuildCRF(units=num_classes)
+        # self.linear_transform = keras.layers.Dense(hidden_size, activation='relu')
+        transform_layers = []
+        if hidden_size > 0:
+            transform_layers.extend([keras.layers.Dense(hidden_size, activation='relu'), keras.layers.Dropout(dropout)])
+        transform_layers.append(keras.layers.Dense(num_classes))
+        self.linear_transform = keras.Sequential(transform_layers)
+        self.crf = BuildCRF(units=num_classes, use_kernel=False)
         self.dropout = layers.Dropout(rate=dropout)
         self.loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True, reduction='none')
 
@@ -181,11 +186,17 @@ class End2EndAspectSentimentModel(Model):
             self.self_attention = TFBertAttention(attention_config)
         else:
             self.self_attention = None
-        self.contain_dense = keras.Sequential([
-            keras.layers.Dense(subblock_hidden_size, activation='relu'),
-            keras.layers.Dropout(0.2),
-            keras.layers.Dense(1)
-        ])
+        
+        layers = []
+        if subblock_hidden_size > 0:
+            layers.extend([keras.layers.Dense(subblock_hidden_size, activation='relu'), keras.layers.Dropout(dropout)])
+        layers.append(keras.layers.Dense(1))
+        self.contain_dense = keras.Sequential(layers)
+        # self.contain_dense = keras.Sequential([
+        #     keras.layers.Dense(subblock_hidden_size, activation='relu'),
+        #     keras.layers.Dropout(0.2),
+        #     keras.layers.Dense(1)
+        # ])
         self.te_loss = self.te_block.compute_crf_loss
         self.contain_loss = keras.losses.BinaryCrossentropy(from_logits=True)
         self.config = {
