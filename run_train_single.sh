@@ -1,8 +1,9 @@
 export CUDA_VISIBLE_DEVICES=${1:-0}
+export TF_CPP_MIN_LOG_LEVEL=2
 #export TF_GPU_ALLOCATOR="cuda_malloc_async"
 
 
-TASK_NAME=ttee_res15_100epoch_nod_tanh_2aug_2e-5lr_uncased_0.3dropout_dropnull_1loss_BIO
+TASK_NAME=test
 SAVE_DIR=""
 OUTPUT_DIR="./output"
 echo ${TASK_NAME}
@@ -17,18 +18,20 @@ python train.py \
     --task_name="${TASK_NAME}" \
     --output_dir="${OUTPUT_DIR}" \
     --save_dir="${SAVE_DIR}" \
-    --epochs=100 \
-    --dropout_rate=0.3 \
-    --valid_freq=5 \
+    --epochs=30 \
+    --dropout_rate=0.2 \
+    --valid_freq=1 \
     --train_batch_size=16 \
     --test_batch_size=32 \
     --lr=2e-5 \
-    --fuse_strategy="update" \
+    --fuse_strategy="gate" \
     --schema="BIO" \
     --block_att_head_num=1 \
     --language=en \
     --drop_null_data \
     --extra_attention \
+    --decay_steps=0 \
+    --decay_rate=0.9 \
     --loss_ratio=1
 
 #    --init_model_dir=checkpoint/v2_e2e_40_2_layer_pool_256_h_2e-5_aug2_cased_update_dropout_0.1_drop_null

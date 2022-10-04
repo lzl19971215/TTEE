@@ -1,15 +1,16 @@
 export CUDA_VISIBLE_DEVICES=${1:-0}
+export TF_CPP_MIN_LOG_LEVEL=2
 #export TF_GPU_ALLOCATOR="cuda_malloc_async"
 
-
-for dropout in 0.2
+cased=0
+for dropout in 0.3
 do
-    for ds in 15 16
+    for ds in 15
     do
-        TASK_NAME=ttee_res${ds}_100epoch_0d_2aug_2e-5lr_uncased_${dropout}dropout_dropnull_1loss_BIO
+        TASK_NAME=ttee_res${ds}_100epoch_0d_2aug_2e-5lr_${cased}cased_gate_${dropout}dropout_dropnull_1loss_BIO
         SAVE_DIR=""
         OUTPUT_DIR="./output"
-        echo "dataset: res${ds}; d_block: 0; dropout: ${dropout}; num augment: 2"
+        echo "dataset: res${ds}; d_block: 0; dropout: 0.2; num augment: 2; loss_ratio:${loss_ratio}"
         echo ${TASK_NAME}
 
         python train.py \
@@ -17,6 +18,7 @@ do
             --do_valid \
             --do_test \
             --mask_sb \
+            --cased=${cased} \
             --dataset="res${ds}" \
             --model_type="end_to_end" \
             --task_name="${TASK_NAME}" \
@@ -28,8 +30,10 @@ do
             --train_batch_size=16 \
             --test_batch_size=32 \
             --lr=2e-5 \
+            --decay_steps=0 \
+            --decay_rate=0.92 \
             --d_block=0 \
-            --fuse_strategy="update" \
+            --fuse_strategy="gate" \
             --schema="BIO" \
             --block_att_head_num=1 \
             --language=en \

@@ -84,9 +84,13 @@ class TargetExtractionBlock(Layer):
 
 class FuseNet(Layer):
 
-    def __init__(self, fuse_strategy='concat', dropout=0.1):
+    def __init__(self, d_model, fuse_strategy='concat', dropout=0.1):
         super(FuseNet, self).__init__()
         self.fuse_strategy = fuse_strategy
+        self.d_model = d_model
+        if self.fuse_strategy == "gate":
+            self.context_w = keras.layers.Dense(d_model, activation="sigmoid")
+            self.aspect_w = keras.layers.Dense(d_model, activation="sigmoid")
         self.dropout = dropout
 
     def call(self, inputs, training=False, output_sim=False, **kwargs):
@@ -125,6 +129,10 @@ class FuseNet(Layer):
             output = text_tokens + aspect_text_tokens
         elif self.fuse_strategy == 'update':
             output = aspect_text_tokens
+        elif self.fuse_strategy == "gate":
+            context_f = self.context_w(text_tokens)
+            aspect_i = self.aspect_w(aspect_text_tokens)
+            output = text_tokens * context_f + aspect_text_tokens * aspect_i
         else:
             raise ValueError('Unsupported strategy {}'.format(self.fuse_strategy))
         result = {
@@ -172,7 +180,7 @@ class End2EndAspectSentimentModel(Model):
         self.dropout = dropout
         self.bert = TFAutoModel.from_pretrained(init_bert_model, cache_dir=cache_dir)
         self.tokenizer = AutoTokenizer.from_pretrained(init_bert_model, cache_dir=cache_dir)
-        self.fuse_net = FuseNet(fuse_strategy, dropout=dropout)
+        self.fuse_net = FuseNet(self.bert.config.hidden_size, fuse_strategy, dropout=dropout)
         n_te_classes = 5 if tagging_schema == "BIOES" else 3
         self.te_block = TargetExtractionBlock(hidden_size=subblock_hidden_size, num_classes=n_te_classes, dropout=dropout)
         if fuse_strategy == 'concat':

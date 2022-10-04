@@ -43,6 +43,8 @@ def arg_parse():
     parser.add_argument("--epochs", help="训练epoch数量", default=30, type=int)
     parser.add_argument("--valid_freq", help="验证的频率", default=1, type=int)
     parser.add_argument("--lr", help="学习率", default=1e-5, type=float)
+    parser.add_argument("--decay_steps", default=1000, type=int)
+    parser.add_argument("--decay_rate", default=0.9, type=float)
     parser.add_argument("--dropout_rate", help="失活率", default=0.1, type=float)
     parser.add_argument("--block_att_head_num", help="子模块自注意力头数", default=1, type=int)
     parser.add_argument("--fuse_strategy", help="端到端的FuseNet融合策略", default="update", type=str)
@@ -51,7 +53,7 @@ def arg_parse():
     parser.add_argument("--d_block", help="子模块模型维度", default=256, type=int)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
     parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
-    parser.add_argument("--cased", help="模型是否区分大小写", default=False, action="store_true")
+    parser.add_argument("--cased", help="模型是否区分大小写", default=0, type=int)
     parser.add_argument("--do_train", help="是否进行训练", default=False, action="store_true")
     parser.add_argument("--do_valid", help="是否进行验证", default=False, action="store_true")
     parser.add_argument("--do_test", help="是否进行测试", default=False, action="store_true")
@@ -104,6 +106,7 @@ class ABSATrainer(object):
         self.model, self.optimizer, self.metrics, datasets, self.tokenizer, self.model_checkpoint = \
             prepare_modules(
                 config=config,
+                args=args,
                 learning_rate=learning_rate,
                 dropout_rate=dropout_rate,
                 model_checkpoint=checkpoint,
@@ -177,13 +180,14 @@ class ABSATrainer(object):
         for epoch in range(1, epoch + 1):
             n_steps = int(np.ceil(len(trainer.train_dataset) / self.args.train_batch_size))
             # train
-            for idx, inputs in tqdm(enumerate(train_loader), total=n_steps, desc=f"epoch {epoch}"):
+            # for idx, inputs in tqdm(enumerate(train_loader), total=n_steps, desc=f"epoch {epoch}"):
+            for idx, inputs in enumerate(train_loader):
                 train_loss, train_acc = self.step(inputs)
                 loss_list.append([item.numpy() for item in train_loss])
                 acc_list.append([item.numpy() for item in train_acc])
 
-            self.logger.info("Epoch {}: ".format(epoch))
-            self.logger.info("Train:")
+            # self.logger.info("Epoch {}: ".format(epoch))
+            # self.logger.info("Train:")
             # self.logger.info(
             #     "Loss {:.4f}, NER Loss {:.4f}, Target Aspect Loss {:.4f}, Target Sentiment Loss {:.4f}".format(
             #         self.metrics.result(),
@@ -195,19 +199,21 @@ class ABSATrainer(object):
             acc_result = [(metric.name, metric.result().numpy().item()) for metric in self.acc_mertrics]
             loss_str = ",  ".join(str(each) for each in loss_result)
             acc_str = ",  ".join(str(each) for each in acc_result)
-            self.logger.info(
-                "Loss {:.4f}, {}".format(
-                    self.metrics.result(),
-                    loss_str
-                ))
+            # self.logger.info(
+            #     "Loss {:.4f}, {}".format(
+            #         self.metrics.result(),
+            #         loss_str
+            #     ))
             # self.logger.info("Ner Acc {:.4f}, Target Aspect Acc {:.4f}, Target Sentiment Acc {:.4f}".format(
             #     self.acc_mertrics[0].result(),
             #     self.acc_mertrics[1].result(),
             #     self.acc_mertrics[2].result()
             # ))
-            self.logger.info("{}".format(
-                acc_str
-            ))
+            # self.logger.info("{}".format(
+            #     acc_str
+            # ))
+            train_log = "Epoch {} Train: Loss {:.4f}, {}, {}".format(epoch, self.metrics.result(), loss_str, acc_str)
+            self.logger.info(train_log)   
 
             self.metrics.reset_states()
             for lm, am in zip(self.loss_metrics, self.acc_mertrics):
@@ -217,15 +223,17 @@ class ABSATrainer(object):
             # valid
             if valid_loader and epoch % valid_freq == 0:
                 valid_loss, valid_acc = self.evaluate(valid_loader)
-                self.logger.info("Evaluate:")
+                # self.logger.info("Evaluate:")
                 valid_loss_result = [str((self.loss_metrics[i].name, valid_loss[i + 1])) for i in
                                      range(len(self.loss_metrics))]
                 valid_acc_result = [str((self.acc_mertrics[i].name, valid_acc[i])) for i in
                                     range(len(self.acc_mertrics))]
                 valid_loss_str = "Loss {:.4f}, {}".format(valid_loss[0], ",  ".join(valid_loss_result))
-                valid_acc_str = ", ".join(valid_acc_result)
-                self.logger.info(valid_loss_str)
-                self.logger.info(valid_acc_str)
+                valid_acc_str = ",  ".join(valid_acc_result)
+                # self.logger.info(valid_loss_str)
+                # self.logger.info(valid_acc_str)
+                valid_log = "Epoch {} Valid: {}, {}".format(epoch, valid_loss_str, valid_acc_str)
+                self.logger.info(valid_log)
                 if do_test:
                     t, p, l = self.test(self.test_dataset, self.args.test_batch_size)
                     output_file_path = os.path.join(self.args.output_dir, self.args.task_name, f"epoch{epoch}_{args.dataset}.json") if self.args.output_dir else None
@@ -234,7 +242,7 @@ class ABSATrainer(object):
                         save_predict(t, p, l, output_file_path)
 
                     precision, recall, f1 = compute_f1(p, l)
-                    self.logger.info("Precision %.3f Recall %.3f F1 %.3f" % (precision, recall, f1))
+                    self.logger.info("Epoch %d Test: Precision %.3f Recall %.3f F1 %.3f" % (epoch, precision, recall, f1))
                     if f1 >= best_f1:
                         best_f1 = f1
                         best_p = precision
@@ -328,7 +336,7 @@ class ABSATrainer(object):
         parse_result = []
         true_result = []
         num_batch = len(test_dataset) // batch_size + 1
-        for idx, (raw_strings, inputs) in tqdm(enumerate(zip(test_string_loader, test_data_loader)), total=num_batch):
+        for idx, (raw_strings, inputs) in enumerate(zip(test_string_loader, test_data_loader)):
             text, triplets = raw_strings[0].numpy(), raw_strings[1].numpy()
             text = [each.decode('utf-8') for each in text]
             contexts.extend(text)
@@ -366,6 +374,7 @@ class ABSATrainer(object):
 
 def prepare_modules(
         config,
+        args,
         learning_rate=1e-5,
         dropout_rate=0.1,
         model_checkpoint=None,
@@ -376,7 +385,7 @@ def prepare_modules(
         logger=logging.getLogger(),
         mask_sb=False,
         lang="en",
-        drop_null_data=False
+        drop_null_data=False,
 ):
     if model_checkpoint is not None:
         if os.path.isdir(model_checkpoint):
@@ -435,7 +444,11 @@ def prepare_modules(
     if model_checkpoint is not None:
         logger.info("Loading parameters from checkpoint: %s" % ckpt_path)
         ckpt.restore(ckpt_path)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    if args.decay_steps > 0:
+        lr = tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=learning_rate, decay_steps=args.decay_steps, decay_rate=args.decay_rate, staircase=True)
+    else:
+        lr = learning_rate
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     metrics = tf.keras.metrics.Mean(name='train_loss')
 
     return model, optimizer, metrics, [train_dataset, test_dataset], tokenizer, ckpt
