@@ -112,6 +112,7 @@ if __name__ == "__main__":
     res15_results = []
     res16_results = []
     for exp in os.listdir("output"):
+
         print(exp)
         if "eval_results.csv" in os.listdir(f"output/{exp}"):
             df = pd.read_csv(f"output/{exp}/eval_results.csv", index_col="Unnamed: 0")
