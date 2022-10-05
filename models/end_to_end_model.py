@@ -172,6 +172,7 @@ class End2EndAspectSentimentModel(Model):
             fuse_strategy='concat',
             tagging_schema="BIOES",
             extra_attention=True,
+            hot_attention=False,
             dropout=0.1,
             loss_ratio=1.0
 
@@ -192,6 +193,11 @@ class End2EndAspectSentimentModel(Model):
         if self.extra_attention:
             attention_config = BertConfig(hidden_size=attention_hidden_size)
             self.self_attention = TFBertAttention(attention_config)
+            if hot_attention:
+                # build layer with dummy input
+                self.self_attention(tf.ones([1,10,attention_hidden_size], dtype=float), attention_mask=None, head_mask=None, output_attentions=False)
+                # set weights equal to last self-attention in bert
+                self.self_attention.set_weights(self.bert.bert.encoder.layer[-1].attention.get_weights())
         else:
             self.self_attention = None
         
@@ -217,6 +223,7 @@ class End2EndAspectSentimentModel(Model):
             "fuse_strategy": fuse_strategy,
             "tagging_schema": tagging_schema,
             "extra_attention": extra_attention,
+            "hot_attention": hot_attention,
             "dropout": dropout,
             "loss_ratio": loss_ratio
         }

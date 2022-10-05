@@ -50,6 +50,7 @@ def arg_parse():
     parser.add_argument("--fuse_strategy", help="端到端的FuseNet融合策略", default="update", type=str)
     parser.add_argument("--schema", help="NER标注规则:BIOES/BIO", default="BIOES", type=str)    
     parser.add_argument("--extra_attention", help="端到端FuseNet之后是否加self Attention", default=False, action="store_true")
+    parser.add_argument("--hot_attention", help="是否用bert最后一个self-attention参数初始化extra-attention", default=False, action="store_true")
     parser.add_argument("--d_block", help="子模块模型维度", default=256, type=int)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
     parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
@@ -487,6 +488,7 @@ if __name__ == '__main__':
         "fuse_strategy": args.fuse_strategy,
         "tagging_schema": args.schema,
         "extra_attention": args.extra_attention,
+        "hot_attention": args.hot_attention,
         "dropout": args.dropout_rate,
         "loss_ratio": args.loss_ratio
     }
