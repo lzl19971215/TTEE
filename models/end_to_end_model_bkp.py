@@ -343,7 +343,7 @@ class End2EndAspectSentimentModel(Model):
 
 if __name__ == '__main__':
     import time
-    from datasets import SemEvalDataSet, TestTokenizer
+    from my_datasets import SemEvalDataSet, TestTokenizer
     from label_mappings import SENTENCE_B, ASPECT_SENTENCE
 
     init_dir = '/lzl/models/bert-base-cased'

@@ -93,7 +93,7 @@ class FuseNet(Layer):
             self.aspect_w = keras.layers.Dense(d_model, activation="sigmoid")
         self.dropout = dropout
 
-    def call(self, inputs, training=False, output_sim=False, **kwargs):
+    def call(self, inputs, training=False, output_sim=False, cross=True, **kwargs):
         """
 
 
@@ -109,12 +109,15 @@ class FuseNet(Layer):
         batch_size = tf.shape(text_tokens)[0]
         seq_len = tf.shape(text_tokens)[1]
         num_aspects = tf.shape(aspect_tokens)[0]
+        if cross:
+            # (batch_size, num_aspects, seq_len, hidden_size)
+            text_tokens = tf.repeat(text_tokens[:, tf.newaxis, :, :], num_aspects, axis=1)
 
-        # (batch_size, num_aspects, seq_len, hidden_size)
-        text_tokens = tf.repeat(text_tokens[:, tf.newaxis, :, :], num_aspects, axis=1)
-
-        # (batch_size, num_aspects, 1, hidden_size)
-        aspect_tokens = aspect_tokens[tf.newaxis, :, tf.newaxis, :]
+            # (batch_size, num_aspects, 1, hidden_size)
+            aspect_tokens = aspect_tokens[tf.newaxis, :, tf.newaxis, :]
+        else:
+            # (batch_size, 1, hidden_size)
+            aspect_tokens = aspect_tokens[:, tf.newaxis, :]
 
         sim_matrix = self.cosine_similarity(aspect_tokens, text_tokens)
 
@@ -267,16 +270,24 @@ class End2EndAspectSentimentModel(Model):
                 input_ids=aspect_inputs[0],
                 token_type_ids=aspect_inputs[1],
                 attention_mask=aspect_inputs[2],
-                training=(phase == "train")
+                training=True
             )
             asp_senti_cls_states = asp_senti_output.pooler_output
             self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(self.num_aspect_senti)))
+        elif phase == "pretrain":
+            asp_senti_output = self.bert(
+                input_ids=aspect_inputs[0],
+                token_type_ids=aspect_inputs[1],
+                attention_mask=aspect_inputs[2],
+                training=True
+            )
+            asp_senti_cls_states = asp_senti_output.pooler_output
         elif phase == "test" and not self.updated:
             asp_senti_output = self.bert(
                 input_ids=aspect_inputs[0],
                 token_type_ids=aspect_inputs[1],
                 attention_mask=aspect_inputs[2],
-                training=(phase == "train")
+                training=False
             )
             asp_senti_cls_states = asp_senti_output.pooler_output
             self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(self.num_aspect_senti)))
@@ -288,25 +299,34 @@ class End2EndAspectSentimentModel(Model):
 
         # (batch_size, num_aspect_senti_pairs, seq_len, hidden_size * 2)
         fused_results = self.fuse_net(
-            inputs=[text_states, asp_senti_cls_states], training=training, output_sim=output_attentions
+            inputs=[text_states, asp_senti_cls_states], training=training, output_sim=output_attentions, cross=phase != "pretrain"
         )
         fused_states = fused_results["fused_states"]
         if output_attentions:
             sim_matrix = fused_results["sim_matrix"]
 
-        # get shape
-        batch_size = tf.shape(fused_states)[0]
-        num_as_pairs = tf.shape(fused_states)[1]
-        seq_len = tf.shape(fused_states)[2]
-        hidden_size = tf.shape(fused_states)[3]
+        if phase == "pretrain":
+            # get shape
+            batch_size = tf.shape(fused_states)[0]
+            seq_len = tf.shape(fused_states)[1]
+            hidden_size = tf.shape(fused_states)[2]
 
-        # (batch_size * num_aspect_senti_pairs, seq_len, hidden_size * 2)
-        fused_states = tf.reshape(fused_states, (-1, seq_len, hidden_size))
-        # (batch_size * num_as_pairs, seq_len)
+            # fused_states: (batch_size, seq_len, hidden_size)
+            crf_mask = input_ids != 0
+        else:
+            # get shape
+            batch_size = tf.shape(fused_states)[0]
+            num_as_pairs = tf.shape(fused_states)[1]
+            seq_len = tf.shape(fused_states)[2]
+            hidden_size = tf.shape(fused_states)[3]
 
-        crf_mask = input_ids != 0
-        crf_mask = tf.tile(crf_mask[:, tf.newaxis, :], [1, num_as_pairs, 1])
-        crf_mask = tf.reshape(crf_mask, (-1, seq_len))
+            # (batch_size * num_aspect_senti_pairs, seq_len, hidden_size * 2)
+            fused_states = tf.reshape(fused_states, (-1, seq_len, hidden_size))
+            # (batch_size * num_as_pairs, seq_len)
+
+            crf_mask = input_ids != 0
+            crf_mask = tf.tile(crf_mask[:, tf.newaxis, :], [1, num_as_pairs, 1])
+            crf_mask = tf.reshape(crf_mask, (-1, seq_len))
         self_attention_mask = tf.cast(crf_mask, tf.float32)[:, tf.newaxis, tf.newaxis, :]
         self_attention_mask = (1 - self_attention_mask) * -10000.0
 
@@ -322,17 +342,18 @@ class End2EndAspectSentimentModel(Model):
             output_states = fused_states
 
         # 3.15 add drop out
-        if phase == "train":
+        if phase == "train" or phase == "pretrain":
             output_states = tf.nn.dropout(output_states, rate=self.dropout)
 
-        # ner block
-        decoded_sequence, output_logits, seq_length, chain_kernel = self.te_block(
-            hidden_states=output_states,
-            mask=crf_mask,
-            training=training
-        )
+        if phase != "pretrain":
+            # ner block
+            decoded_sequence, output_logits, seq_length, chain_kernel = self.te_block(
+                hidden_states=output_states,
+                mask=crf_mask,
+                training=training
+            )
         output_cls_states = self.contain_dense(output_states[:, 0, :])
-        output_cls_states = tf.reshape(output_cls_states, (batch_size, num_as_pairs))  # (batch_size, num_as_pairs)
+        output_cls_states = tf.reshape(output_cls_states, (batch_size, -1))  # (batch_size, num_as_pairs)
 
         if phase == "train":
             ner_labels, cls_labels = label_inputs
@@ -343,6 +364,16 @@ class End2EndAspectSentimentModel(Model):
             cls_acc = tf.reduce_mean(tf.cast(cls_labels == cls_predicts, tf.float32))
             total_loss = self.alpha * ner_loss + self.beta * cls_loss
             return [ner_loss, cls_loss, total_loss], [ner_acc, cls_acc]
+        elif phase == "pretrain":
+            cls_labels = label_inputs[0]
+            cls_loss = self.contain_loss(cls_labels, output_cls_states)
+            cls_predicts = tf.cast(output_cls_states > 0, tf.int32)
+            cls_acc = tf.reduce_mean(tf.cast(cls_labels == cls_predicts, tf.float32))
+            result = {
+                "cls_loss": cls_loss,
+                "cls_acc": cls_acc
+            }
+            return result
         elif phase == "valid":
             ner_labels, cls_labels = label_inputs
             ner_loss, ner_acc = self.te_loss(decoded_sequence, output_logits, ner_labels, seq_length)
@@ -375,23 +406,32 @@ class End2EndAspectSentimentModel(Model):
 
 if __name__ == '__main__':
     import time
-    from datasets import SemEvalDataSet, TestTokenizer
-    from label_mappings import SENTENCE_B, ASPECT_SENTENCE
+    import sys
+    sys.path.append(".")
+    from my_datasets import PreTrainDataset, TestTokenizer
+    from label_mappings import ASPECT_SENTENCE
 
-    init_dir = '/lzl/models/bert-base-cased'
+    init_dir = 'bert_models/bert-base-cased'
     init_model = 'bert-base-cased'
     file_path = '../data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml'
     tokenizer = AutoTokenizer.from_pretrained('bert-base-cased', cache_dir=init_dir)
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    dataset = SemEvalDataSet(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
+    # dataset = SemEvalDataSet(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
+    # ds = tf.data.Dataset.from_generator(
+    #     dataset.generate_string_sample,
+    #     output_types=(tf.string, tf.string)
+    # ).batch(batch_size=8).map(dataset.wrap_map)
+    
+    pt = PreTrainDataset("data/pretrain/pretrain_data.csv", tokenizer=tokenizer)
     ds = tf.data.Dataset.from_generator(
-        dataset.generate_string_sample,
-        output_types=(tf.string, tf.string)
-    ).batch(batch_size=8).map(dataset.wrap_map)
-    model = End2EndAspectSentimentModel(init_bert_model=init_model, sentence_b=SENTENCE_B, cache_dir=init_dir)
-    for inputs in ds:
-        text_inputs = inputs[:3]
-        aspect_senti_inputs = inputs[-3:]
-        labels = inputs[3: 5]
-        output = model(text_inputs, aspect_senti_inputs, labels)
+        pt.generate_string_sample,
+        output_types=(tf.string, tf.string, tf.int32)
+    )
+    loader = ds.batch(4).map(pt.wrap_map)
+    model = End2EndAspectSentimentModel(init_bert_model=init_model, sentence_b=ASPECT_SENTENCE, cache_dir=init_dir, fuse_strategy="update", tagging_schema="BIO")
+    for inputs in loader:
+        context = inputs[:3]
+        label = inputs[3:4]
+        topic = inputs[4:]
+        output = model(context, topic, label, phase="pretrain")
         break

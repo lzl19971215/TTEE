@@ -3,7 +3,7 @@ import logging
 from train import ABSATrainer
 from label_mappings import *
 from transformers import AutoTokenizer
-from datasets import TestTokenizer
+from my_datasets import TestTokenizer
 from utils.eval_utils import quick_test
 
 if __name__ == '__main__':

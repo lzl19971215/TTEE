@@ -9,7 +9,7 @@ sys.path.append(".")
 # tf.config.experimental.set_virtual_device_configuration(gpus[0], [
 #     tf.config.experimental.VirtualDeviceConfiguration(memory_limit=2048)])
 from flask import Flask, request
-from datasets import TestTokenizer
+from my_datasets import TestTokenizer
 from transformers import AutoTokenizer
 from label_mappings import *
 from online_predictor import OnlinePredictor

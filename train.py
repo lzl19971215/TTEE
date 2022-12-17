@@ -10,7 +10,7 @@ import numpy as np
 from models.single_tower_model import AspectSentimentModel
 from models.double_tower_model import DoubleTowerAspectSentimentModel
 from models.end_to_end_model import End2EndAspectSentimentModel
-from datasets import ChineseDataset, EnglishDataset
+from my_datasets import ChineseDataset, EnglishDataset, PreTrainDataset
 from label_mappings import *
 from transformers import AutoTokenizer
 from utils.data_utils import prepare_logger
@@ -61,6 +61,12 @@ def arg_parse():
     parser.add_argument("--language", help="语言", default="en", type=str)
     parser.add_argument("--drop_null_data", help="是否在训练与测试集中去掉不包含三元组的句子", default=False, action="store_true")
     parser.add_argument("--loss_ratio", help="ner loss与detection loss的比例", default=1, type=float)
+
+    # for pretrain
+    parser.add_argument("--pretrain", help="是否是预训练", default=False, action="store_true")
+    parser.add_argument("--pretrain_steps", help="预训练batch数量", type=int)
+    parser.add_argument("--pretrain_save_steps", help="预训练日志打印步数", type=int)    
+    parser.add_argument("--pretrain_log_steps", help="预训练模型保存步数", type=int)
     return parser.parse_args()
 
 
@@ -93,6 +99,13 @@ end_to_end_signature = [
                            tf.TensorSpec(shape=(None, num_asp_senti_pairs, None), dtype=tf.int32),
                            tf.TensorSpec(shape=(None, num_asp_senti_pairs), dtype=tf.int32)
                        ] + aspect_signature
+
+pretrain_signature = [
+    tf.TensorSpec(shape=(None, None), dtype=tf.int32),
+    tf.TensorSpec(shape=(None, None), dtype=tf.int32),
+    tf.TensorSpec(shape=(None, None), dtype=tf.int32),
+    tf.TensorSpec(shape=(None, 1), dtype=tf.int32)
+] + aspect_signature
 
 
 class ABSATrainer(object):
@@ -131,7 +144,7 @@ class ABSATrainer(object):
             self.loss_metrics_names = ["Ner", "CLS Classification"]
             self.acc_metrics_names = ["Ner", "CLS Classification"]
         self.loss_metrics = [tf.keras.metrics.Mean(name=name + " " + "Loss") for name in self.loss_metrics_names]
-        self.acc_mertrics = [tf.keras.metrics.Mean(name=name + " " + "Acc") for name in self.acc_metrics_names]
+        self.acc_metrics = [tf.keras.metrics.Mean(name=name + " " + "Acc") for name in self.acc_metrics_names]
         self.Result_tuple = namedtuple("result", ["target", "category", "polarity"])
 
     @tf.function(input_signature=[end_to_end_signature])
@@ -164,10 +177,64 @@ class ABSATrainer(object):
         self.metrics.update_state(loss[-1])
         for idx, loss_metric in enumerate(self.loss_metrics):
             loss_metric.update_state(loss[idx])
-        for idx, acc_metric in enumerate(self.acc_mertrics):
+        for idx, acc_metric in enumerate(self.acc_metrics):
             acc_metric.update_state(acc[idx])
 
         return loss, acc
+
+
+    @tf.function(input_signature=[pretrain_signature]) 
+    def pretrain_step(self, inputs):
+        with tf.GradientTape() as tape:
+            text_inputs = inputs[:3]
+            label_inputs = inputs[3:4]
+            topic_inputs = inputs[4:]
+            outputs = self.model(
+                text_inputs=text_inputs,
+                aspect_inputs=topic_inputs,
+                label_inputs=label_inputs,
+                phase="pretrain"
+            )
+        cls_loss = outputs["cls_loss"]
+        cls_acc = outputs["cls_acc"]
+        gradients = tape.gradient(cls_loss, self.model.trainable_variables)
+        self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+        self.loss_metrics[-1].update_state(cls_loss)
+        self.acc_metrics[-1].update_state(cls_acc) 
+        return cls_loss, cls_acc
+
+
+    def pretrain(self, data_loader, train_steps, save_steps=2000, log_steps=500, save_dir=None):
+        loss_list = []
+        acc_list = []
+        iterator = iter(data_loader)
+        num_steps = 0
+        checkpoint_manager = tf.train.CheckpointManager(self.model_checkpoint, directory=save_dir, max_to_keep=3) if save_dir else None        
+        while True:
+            inputs = iterator.get_next()
+            pretrain_loss, pretrain_acc = self.pretrain_step(inputs)
+            loss_list.append(pretrain_loss.numpy())
+            acc_list.append(pretrain_acc.numpy())
+            num_steps += 1
+            if num_steps % log_steps == 0:
+                train_log = "Steps: {} || Loss: {:.4f} || Acc: {:.4f}".format(num_steps, self.loss_metrics[-1].result(), self.acc_metrics[-1].result())
+                self.logger.info(train_log)
+                self.loss_metrics[-1].reset_states()
+                self.acc_metrics[-1].reset_states()
+            if num_steps % save_steps == 0 and save_dir:
+                self.logger.info("saving checkpoint...")
+                if not os.path.exists(save_dir):
+                    os.mkdir(save_dir)
+                checkpoint_manager.save(num_steps)
+                config = self.model.get_config()
+                json.dump(config, open(os.path.join(save_dir, "model_config.json"), "w"))
+            
+            if num_steps >= train_steps:
+                break
+        
+        self.logger.info("Pretraining Finish!")
+        return loss_list, acc_list
+
 
     def train_and_eval(self, epoch, train_loader, valid_loader=None, valid_freq=1, save_dir=None, do_test=True):
         loss_list = []
@@ -197,7 +264,7 @@ class ABSATrainer(object):
             #         self.loss_metrics[2].result(),
             #     ))
             loss_result = [(metric.name, metric.result().numpy().item()) for metric in self.loss_metrics]
-            acc_result = [(metric.name, metric.result().numpy().item()) for metric in self.acc_mertrics]
+            acc_result = [(metric.name, metric.result().numpy().item()) for metric in self.acc_metrics]
             loss_str = ",  ".join(str(each) for each in loss_result)
             acc_str = ",  ".join(str(each) for each in acc_result)
             # self.logger.info(
@@ -217,7 +284,7 @@ class ABSATrainer(object):
             self.logger.info(train_log)   
 
             self.metrics.reset_states()
-            for lm, am in zip(self.loss_metrics, self.acc_mertrics):
+            for lm, am in zip(self.loss_metrics, self.acc_metrics):
                 lm.reset_states()
                 am.reset_states()
 
@@ -227,8 +294,8 @@ class ABSATrainer(object):
                 # self.logger.info("Evaluate:")
                 valid_loss_result = [str((self.loss_metrics[i].name, valid_loss[i + 1])) for i in
                                      range(len(self.loss_metrics))]
-                valid_acc_result = [str((self.acc_mertrics[i].name, valid_acc[i])) for i in
-                                    range(len(self.acc_mertrics))]
+                valid_acc_result = [str((self.acc_metrics[i].name, valid_acc[i])) for i in
+                                    range(len(self.acc_metrics))]
                 valid_loss_str = "Loss {:.4f}, {}".format(valid_loss[0], ",  ".join(valid_loss_result))
                 valid_acc_str = ",  ".join(valid_acc_result)
                 # self.logger.info(valid_loss_str)
@@ -404,22 +471,31 @@ def prepare_modules(
     sentence_b = config['sentence_b']
     tokenizer = AutoTokenizer.from_pretrained(init_model, cache_dir=init_dir)
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    if lang == "en":
+    if args.pretrain:
+        Dataset = PreTrainDataset
+    elif lang == "en":
         Dataset = EnglishDataset
     elif lang == "cn":
         Dataset = ChineseDataset
     else:
         raise ValueError(f"Error language {lang}")
 
-    train_dataset = Dataset(
-        file_path=train_data_path,
-        tokenizer=tokenizer,
-        sentence_b=sentence_b,
-        mask_sb=mask_sb,
-        tagging_schema=config["tagging_schema"],
-        model_type=model_type,
-        drop_null=drop_null_data
-    )
+    
+    if args.pretrain:
+        train_dataset = Dataset(
+            file_path=train_data_path,
+            tokenizer = tokenizer
+        )
+    else:
+        train_dataset = Dataset(
+            file_path=train_data_path,
+            tokenizer=tokenizer,
+            sentence_b=sentence_b,
+            mask_sb=mask_sb,
+            tagging_schema=config["tagging_schema"],
+            model_type=model_type,
+            drop_null=drop_null_data
+        )
 
     if test_data_path:
         test_dataset = Dataset(
@@ -440,6 +516,8 @@ def prepare_modules(
     else:
         model_class = End2EndAspectSentimentModel
     model = model_class.from_config(config)
+    if args.pretrain:
+        model.te_block.trainable = False
     # model.build_params(input_shape=(None, model.bert.config.hidden_size))
     ckpt = tf.train.Checkpoint(model=model)
     if model_checkpoint is not None:
@@ -506,7 +584,9 @@ if __name__ == '__main__':
     # save_dir = "./checkpoint/end_2_end"
     # checkpoint_path = "./checkpoint/end_2_end"
     train_data_path, test_data_path = None, None
-    if language == "en":
+    if args.pretrain:
+        train_data_path = "./data/pretrain/pretrain_data.csv"
+    elif language == "en":
         if args.dataset == "res16":
             train_data_path = "./data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml"
             test_data_path = "./data/semeval2016/EN_REST_SB1_TEST_LABELED.xml"
@@ -540,10 +620,17 @@ if __name__ == '__main__':
     if args.data_aug is not None:
         logger.info("Data augment: Merge {} train data together".format(args.data_aug))
         trainer.train_dataset.augment(list(range(2, args.data_aug + 1)))
-    train_loader = tf.data.Dataset.from_generator(
-        trainer.train_dataset.generate_string_sample,
-        output_types=(tf.string, tf.string)
-    ).batch(batch_size=args.train_batch_size).shuffle(buffer_size=10000).map(trainer.train_dataset.wrap_map).prefetch(8)
+    
+    if args.pretrain:
+        train_loader = tf.data.Dataset.from_generator(
+            trainer.train_dataset.generate_string_sample,
+            output_types=(tf.string, tf.string, tf.int32)
+        ).batch(batch_size=args.train_batch_size).map(trainer.train_dataset.wrap_map).repeat().prefetch(8)
+    else:
+        train_loader = tf.data.Dataset.from_generator(
+            trainer.train_dataset.generate_string_sample,
+            output_types=(tf.string, tf.string)
+        ).batch(batch_size=args.train_batch_size).shuffle(buffer_size=10000).map(trainer.train_dataset.wrap_map).prefetch(8)
 
     if args.do_test:
         test_loader = tf.data.Dataset.from_generator(
@@ -552,14 +639,24 @@ if __name__ == '__main__':
         ).batch(batch_size=args.test_batch_size).map(trainer.test_dataset.wrap_map).cache()
     else:
         test_loader = None
-    train_loss, train_acc = trainer.train_and_eval(
-        args.epochs,
-        train_loader,
-        test_loader,
-        valid_freq=args.valid_freq,
-        save_dir=save_dir,
-        do_test=args.do_test
-    )
+    
+    if args.pretrain:
+        train_loss, train_acc = trainer.pretrain(
+            data_loader=train_loader,
+            train_steps=args.pretrain_steps,
+            save_steps=args.pretrain_save_steps,
+            log_steps=args.pretrain_log_steps,
+            save_dir=save_dir
+        )
+    else:
+        train_loss, train_acc = trainer.train_and_eval(
+            args.epochs,
+            train_loader,
+            test_loader,
+            valid_freq=args.valid_freq,
+            save_dir=save_dir,
+            do_test=args.do_test
+        )
 
     # p, l = trainer.test(trainer.test_dataset, args.test_batch_size)
     # precision, recall, f1 = compute_f1(p, l)

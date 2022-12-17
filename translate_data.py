@@ -4,7 +4,7 @@ import requests
 import random
 import json
 import time
-from datasets import SemEvalDataSet
+from my_datasets import SemEvalDataSet
 from transformers import AutoTokenizer
 from label_mappings import *
 from multiprocessing import Pool

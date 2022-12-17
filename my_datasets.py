@@ -596,20 +596,95 @@ class TestTokenizer(object):
         return mask
 
 
+class PreTrainDataset(object):
+
+    def __init__(self, file_path, tokenizer) -> None:
+        self.tokenizer = tokenizer
+        self.file_path = file_path
+        self.data = self._load_data()
+
+    
+    def _load_data(self):
+        result = []
+        if self.file_path.endswith(".csv"):
+            df = pd.read_csv(self.file_path)
+        elif self.file_path.endswith(".json"):
+            data = json.load(self.file_path)
+            df = pd.DataFrame(data)
+        else:
+            raise ValueError("Wrong data format")
+        
+        return df
+
+    def generate_string_sample(self):
+        for idx, sample in self.data.iterrows():
+            yield sample["context"], sample["topic"], sample["label"]
+
+    def map_batch_string_to_tensor(self, context, topic, label):
+        batch_size = context.shape[0]
+        origin_context = [text.decode('utf-8') for text in context.numpy()]
+        tokenized_context = self.tokenizer(
+            origin_context,
+            padding='longest',
+            max_length=256,
+            truncation=True
+        )
+
+        origin_topic = [text.decode('utf-8') for text in topic.numpy()]
+        tokenized_topic = self.tokenizer(
+            origin_topic,
+            padding='longest',
+            max_length=256,
+            truncation=True
+        )
+
+
+        context_inputs_list = [
+            np.array(tokenized_context['input_ids']),
+            np.array(tokenized_context['token_type_ids']),
+            np.array(tokenized_context["attention_mask"]),
+            np.array(label).reshape((batch_size, -1))
+        ]
+
+        topic_inputs_list = [
+            np.array(tokenized_topic['input_ids']),
+            np.array(tokenized_topic['token_type_ids']),
+            np.array(tokenized_topic['attention_mask'])
+        ]
+
+        return context_inputs_list + topic_inputs_list
+
+    def __len__(self):
+        return len(self.data)
+    def wrap_map(self, context, topic, label):
+        result = tf.py_function(
+            self.map_batch_string_to_tensor,
+            inp=[context, topic, label],
+            Tout=[tf.int32] * 7
+        )
+        return result
+
 if __name__ == '__main__':
     file_path = 'data/semeval2015/ABSA15_Restaurants_Test.xml'
-    tokenizer = AutoTokenizer.from_pretrained('bert-base-cased', cache_dir='bert_models/bert-base-cased')
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    dataset = EnglishDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
-    ds = tf.data.Dataset.from_generator(
-        dataset.generate_string_sample,
-        output_types=(tf.string, tf.string)
-    )
+    # dataset = EnglishDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
+    # ds = tf.data.Dataset.from_generator(
+    #     dataset.generate_string_sample,
+    #     output_types=(tf.string, tf.string)
+    # )
     # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
-    for a, b in ds.batch(8):
-        dataset.map_batch_string_to_tensor_end_to_end(a, b)
+    # for a, b in ds.batch(8):
+    #     dataset.map_batch_string_to_tensor_end_to_end(a, b)
     # input_ids = tokenizer(SENTENCE_B['text'], return_offsets_mapping=True, add_special_tokens=False)['input_ids']
     # tt = tokenizer.convert_ids_to_tokens(input_ids)
     #
     # testtokenizer = TestTokenizer(tokenizer, SENTENCE_B)
     # testtokenizer.tokenize(['I like the fish!'])
+    pt = PreTrainDataset("data/amazon_review_processed.csv", tokenizer=tokenizer)
+    ds = tf.data.Dataset.from_generator(
+        pt.data_generator,
+        output_types=(tf.string, tf.string, tf.int32)
+    )
+    for a, b, c in ds.batch(8):
+        pt.map_batch_string_to_tensor(a, b, c)
