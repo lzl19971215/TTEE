@@ -1,14 +1,14 @@
 export CUDA_VISIBLE_DEVICES=${1:-0}
-# export TF_CPP_MIN_LOG_LEVEL=2
+export TF_CPP_MIN_LOG_LEVEL=2
 
 
 d_block=0
 fuse_strategy=gate
-cased=1
+cased=0
 dropout=0.3
-steps=20000
-save_steps=3
-log_steps=1
+steps=50000
+save_steps=5000
+log_steps=1000
 epoch=1
 
 

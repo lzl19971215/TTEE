@@ -648,6 +648,11 @@ if __name__ == '__main__':
             log_steps=args.pretrain_log_steps,
             save_dir=save_dir
         )
+        import pandas as pd
+        train_metric_df = pd.DataFrame({"train_loss": train_loss, "train_acc":train_acc})
+        train_metric_df.to_csv(os.path.join(task_output_dir, "pretrain_metrics.csv"), index=False)
+
+        
     else:
         train_loss, train_acc = trainer.train_and_eval(
             args.epochs,

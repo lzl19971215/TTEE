@@ -396,10 +396,10 @@ class End2EndAspectSentimentModel(Model):
             # return ((decoded_sequence, output_logits), output_cls_states)
             return result
 
-    def build_params(self, input_shape):
-        self.te_block.build(input_shape)
-        self.self_attention.build((None, None, input_shape[-1] * 2))
-        self.contain_dense.build((None, input_shape[-1] * 2))
+    def build_params(self):
+        dummy_text_inputs = [tf.constant([[10, 10, 10]]), tf.constant([[0, 0, 0]]), tf.constant([[1, 1, 1]])]
+        dummy_aspect_inputs = [tf.constant([[10, 10, 10]] * self.num_aspect_senti), tf.constant([[0, 0, 0]]* self.num_aspect_senti), tf.constant([[1, 1, 1]] * self.num_aspect_senti)]
+        self.call(dummy_text_inputs, dummy_aspect_inputs, phase="test")
         self.built = True
         # super(AspectSentimentModel, self).build(input_shape)
 
