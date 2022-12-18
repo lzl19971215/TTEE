@@ -282,6 +282,14 @@ class End2EndAspectSentimentModel(Model):
                 training=True
             )
             asp_senti_cls_states = asp_senti_output.pooler_output
+        elif phase == "dynamic_aspect_test":
+            asp_senti_output = self.bert(
+                input_ids=aspect_inputs[0],
+                token_type_ids=aspect_inputs[1],
+                attention_mask=aspect_inputs[2],
+                training=False
+            )
+            asp_senti_cls_states = asp_senti_output.pooler_output            
         elif phase == "test" and not self.updated:
             asp_senti_output = self.bert(
                 input_ids=aspect_inputs[0],

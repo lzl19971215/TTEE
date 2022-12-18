@@ -6,9 +6,9 @@ d_block=0
 fuse_strategy=gate
 cased=0
 dropout=0.3
-steps=50000
+steps=20000
 save_steps=5000
-log_steps=1000
+log_steps=200
 epoch=1
 
 

@@ -525,6 +525,8 @@ def prepare_modules(
     if model_checkpoint is not None:
         logger.info("Loading parameters from checkpoint: %s" % ckpt_path)
         ckpt.restore(ckpt_path)
+    # model.build_params()
+    # print(model.contain_dense.trainable_variables)      
     if args.decay_steps > 0:
         lr = tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=learning_rate, decay_steps=args.decay_steps, decay_rate=args.decay_rate, staircase=True)
     else:

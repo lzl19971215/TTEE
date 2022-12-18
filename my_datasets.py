@@ -443,14 +443,14 @@ class TestTokenizer(object):
                             enumerate(zip(aspect_texts, sentiment_texts))}
         return asp_senti_to_idx, aspect_texts, sentiment_texts
 
-    def tokenize(self, texts, max_len=None):
+    def tokenize(self, texts, aspect_texts=None, max_len=None):
         if self.model_type == "double_tower":
             result = self.tokenize_double_tower(texts)
         elif self.model_type == "single_tower":
             result = self.tokenize_single_tower(texts)
         else:
-            result = self.tokenize_end_to_end(texts, max_len=max_len)
-        return result
+            result = self.tokenize_end_to_end(texts, aspect_texts=aspect_texts, max_len=max_len)
+        return result     
 
     def tokenize_single_tower(self, texts):
         batch_size = len(texts)
@@ -534,7 +534,7 @@ class TestTokenizer(object):
         }
         return result
 
-    def tokenize_end_to_end(self, texts, max_len=None):
+    def tokenize_end_to_end(self, texts, aspect_texts=None, max_len=None):
         tokenized_texts = self.tokenizer(
             texts,
             padding='longest',
@@ -548,14 +548,34 @@ class TestTokenizer(object):
                 max_length=max_len
             )
 
-        aspect_senti_inputs = self.tokenizer(
-            self.aspect_texts,
-            self.sentiment_texts,
-            padding='longest',
-            add_special_tokens=True,
-            return_token_type_ids=True,
-            return_attention_mask=True
-        )
+        if aspect_texts is None:
+            aspect_senti_inputs = self.tokenizer(
+                self.aspect_texts,
+                self.sentiment_texts,
+                padding='longest',
+                add_special_tokens=True,
+                return_token_type_ids=True,
+                return_attention_mask=True
+            )
+        elif len(aspect_texts) == 1:
+            aspect_senti_inputs = self.tokenizer(
+                aspect_texts[0],
+                padding='longest',
+                add_special_tokens=True,
+                return_token_type_ids=True,
+                return_attention_mask=True
+            )
+        elif len(aspect_texts) == 2:
+            aspect_senti_inputs = self.tokenizer(
+                aspect_texts[0],
+                aspect_texts[1],                
+                padding='longest',
+                add_special_tokens=True,
+                return_token_type_ids=True,
+                return_attention_mask=True
+            ) 
+        else:
+            raise ValueError("wrong length of aspect_texts list")           
 
         attention_mask = np.array(tokenized_texts['attention_mask'])
         attention_mask = np.repeat(attention_mask[:, np.newaxis, :], attention_mask.shape[1], axis=1).astype(np.int32)
