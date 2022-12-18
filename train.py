@@ -34,6 +34,7 @@ def arg_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument("--task_name", help="训练任务名称", required=True, type=str)
     parser.add_argument("--init_model_dir", help="热启动模型路径", default="", type=str)
+    parser.add_argument("--load_config", help="是否需要加载checkpoint的config", default=False, action="store_true")
     parser.add_argument("--save_dir", help="模型保存路径", default="", type=str)
     parser.add_argument("--output_dir", help="日志及测试结果保存路径", default="", type=str)
     parser.add_argument("--data_aug", help="数据增强策略", default=None, type=int)
@@ -463,7 +464,8 @@ def prepare_modules(
             ckpt_path = model_checkpoint
             dir_name = os.path.dirname(ckpt_path)
             config_path = os.path.join(dir_name, "model_config.json")
-        config = json.load(open(config_path))
+        if args.load_config:
+            config = json.load(open(config_path))
 
     init_dir = config['cache_dir']
     init_model = config['init_bert_model']
