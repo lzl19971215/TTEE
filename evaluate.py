@@ -111,17 +111,18 @@ TASK_CONFIG = {
 if __name__ == "__main__":
     res15_results = []
     res16_results = []
-    for exp in os.listdir("output"):
+    output_dir = "../TTEE_output/output"
+    for exp in os.listdir(output_dir):
 
         print(exp)
-        if "eval_results.csv" in os.listdir(f"output/{exp}"):
-            df = pd.read_csv(f"output/{exp}/eval_results.csv", index_col="Unnamed: 0")
+        if "eval_results.csv" in os.listdir(f"{output_dir}/{exp}"):
+            df = pd.read_csv(f"{output_dir}/{exp}/eval_results.csv", index_col="Unnamed: 0")
             print(df)
             print()
             res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
             continue
         try:
-            evaluator = MultiTaskEvaluatior(TASK_CONFIG, f"output/{exp}")
+            evaluator = MultiTaskEvaluatior(TASK_CONFIG, f"{output_dir}/{exp}")
             df = evaluator.full_evaluate(True)
             res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
         except:
