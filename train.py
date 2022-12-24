@@ -68,6 +68,7 @@ def arg_parse():
     parser.add_argument("--pretrain_steps", help="预训练batch数量", type=int)
     parser.add_argument("--pretrain_save_steps", help="预训练日志打印步数", type=int)    
     parser.add_argument("--pretrain_log_steps", help="预训练模型保存步数", type=int)
+    parser.add_argument("--pretrain_data", help="预训练数据文件名称", type=str)
     return parser.parse_args()
 
 
@@ -589,7 +590,7 @@ if __name__ == '__main__':
     # checkpoint_path = "./checkpoint/end_2_end"
     train_data_path, test_data_path = None, None
     if args.pretrain:
-        train_data_path = "./data/pretrain/pretrain_data.csv"
+        train_data_path = f"./data/pretrain/{args.pretrain_data}"
     elif language == "en":
         if args.dataset == "res16":
             train_data_path = "./data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml"
