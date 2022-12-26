@@ -49,6 +49,7 @@ def arg_parse():
     parser.add_argument("--dropout_rate", help="失活率", default=0.1, type=float)
     parser.add_argument("--block_att_head_num", help="子模块自注意力头数", default=1, type=int)
     parser.add_argument("--fuse_strategy", help="端到端的FuseNet融合策略", default="update", type=str)
+    parser.add_argument("--pooling", help="池化策略:cls或者mean", default="cls", type=str)
     parser.add_argument("--schema", help="NER标注规则:BIOES/BIO", default="BIOES", type=str)    
     parser.add_argument("--extra_attention", help="端到端FuseNet之后是否加self Attention", default=False, action="store_true")
     parser.add_argument("--hot_attention", help="是否用bert最后一个self-attention参数初始化extra-attention", default=False, action="store_true")
@@ -569,6 +570,7 @@ if __name__ == '__main__':
         "subblock_head_num": args.block_att_head_num,
         "cache_dir": cache_dir,
         "fuse_strategy": args.fuse_strategy,
+        "pooling": args.pooling,
         "tagging_schema": args.schema,
         "extra_attention": args.extra_attention,
         "hot_attention": args.hot_attention,

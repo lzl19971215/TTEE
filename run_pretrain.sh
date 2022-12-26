@@ -4,15 +4,16 @@ export TF_CPP_MIN_LOG_LEVEL=2
 
 d_block=0
 fuse_strategy=update
+pooling=mean
 cased=0
 dropout=0.2
-steps=12000
-save_steps=30000
+steps=60000
+save_steps=20000
 log_steps=200
 epoch=1
-pretrain_data=pretrain70w_new.csv
+pretrain_data=pretrain_db_amazon_less_pos.csv
 
-TASK_NAME=ttee_${pretrain_data}_pretrain_${steps}steps_${d_block}d_2e-5lr_3000_0.96_schedule_${cased}cased_${fuse_strategy}_${dropout}dropout
+TASK_NAME=ttee_${pretrain_data}_pretrain_${steps}steps_${d_block}d_2e-5lr_3000_0.96_schedule_${cased}cased_${fuse_strategy}_${pooling}pool_${dropout}dropout
 SAVE_DIR="./checkpoint"
 OUTPUT_DIR="./output"
 echo ${TASK_NAME}
@@ -36,6 +37,7 @@ python train.py \
     --decay_rate=0.96 \
     --d_block=${d_block} \
     --fuse_strategy=${fuse_strategy} \
+    --pooling=${pooling} \
     --schema="BIO" \
     --block_att_head_num=1 \
     --language=en \

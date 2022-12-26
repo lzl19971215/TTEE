@@ -173,6 +173,7 @@ class End2EndAspectSentimentModel(Model):
             subblock_head_num=1,
             cache_dir=None,
             fuse_strategy='concat',
+            pooling='cls',
             tagging_schema="BIOES",
             extra_attention=True,
             hot_attention=False,
@@ -224,6 +225,7 @@ class End2EndAspectSentimentModel(Model):
             "subblock_head_num": subblock_head_num,
             "cache_dir": cache_dir,
             "fuse_strategy": fuse_strategy,
+            "pooling": pooling,
             "tagging_schema": tagging_schema,
             "extra_attention": extra_attention,
             "hot_attention": hot_attention,
@@ -231,7 +233,7 @@ class End2EndAspectSentimentModel(Model):
             "loss_ratio": loss_ratio
         }
         self.fuse_strategy = fuse_strategy
-
+        self.pooling = pooling
         self.num_aspect_senti = len(sentence_b["texts"]) * len(sentence_b["sentiments"])
         self.asp_senti_cache = tf.Variable(tf.zeros((self.num_aspect_senti, 768)), trainable=False)
         self.updated = tf.Variable(initial_value=False, dtype=tf.bool, trainable=False)
@@ -360,7 +362,11 @@ class End2EndAspectSentimentModel(Model):
                 mask=crf_mask,
                 training=training
             )
-        output_cls_states = self.contain_dense(output_states[:, 0, :])
+        if self.pooling == "cls":
+            pool_states = output_states[:, 0, :]
+        else:
+            pool_states = tf.reduce_mean(output_states, axis=1)
+        output_cls_states = self.contain_dense(pool_states)
         output_cls_states = tf.reshape(output_cls_states, (batch_size, -1))  # (batch_size, num_as_pairs)
 
         if phase == "train":
