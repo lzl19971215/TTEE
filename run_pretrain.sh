@@ -6,13 +6,12 @@ d_block=0
 fuse_strategy=update
 pooling=mean
 cased=0
-dropout=0.2
-steps=60000
-save_steps=20000
+dropout=0.3
+steps=120000
+save_steps=30000
 log_steps=200
 epoch=1
-pretrain_data=pretrain_db_amazon_less_pos.csv
-
+pretrain_data=pretrain_70w.csv
 TASK_NAME=ttee_${pretrain_data}_pretrain_${steps}steps_${d_block}d_2e-5lr_3000_0.96_schedule_${cased}cased_${fuse_strategy}_${pooling}pool_${dropout}dropout
 SAVE_DIR="./checkpoint"
 OUTPUT_DIR="./output"
