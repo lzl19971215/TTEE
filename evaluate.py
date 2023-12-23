@@ -4,8 +4,20 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from collections import namedtuple
-from utils.eval_utils import compute_f1
+# from utils.eval_utils import compute_f1
 
+def compute_f1(predicts, labels):
+    tp = 0
+    pos = 0
+    true = 0
+    for p, l in zip(predicts, labels):
+        true += len(l)
+        pos += len(p)
+        tp += len(p & l)
+    precision = tp / pos if pos != 0 else 0
+    recall = tp / true if true != 0 else 0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) != 0 else 0
+    return precision, recall, f1
 
 class Task(object):
 
@@ -24,9 +36,21 @@ class Task(object):
     def parse(self, context, predict, label):
         p_set = set(self._json_to_result(each) for each in predict)
         l_set = set(self._json_to_result(each) for each in label)
-        self.contexts.append(context)
-        self.predicts.append(p_set)
-        self.labels.append(l_set)
+        if "Implicity" in self.task_name:
+            if "Implicity_Only" in self.task_name:
+                if all(each.target == "NULL" for each in l_set):
+                    self.contexts.append(context)
+                    self.predicts.append(p_set)
+                    self.labels.append(l_set)
+            else:
+                if any(each.target == "NULL" for each in l_set):
+                    self.contexts.append(context)
+                    self.predicts.append(p_set)
+                    self.labels.append(l_set)
+        else:
+            self.contexts.append(context)
+            self.predicts.append(p_set)
+            self.labels.append(l_set)
 
     def evaluate(self):
         return compute_f1(self.predicts, self.labels)
@@ -105,17 +129,27 @@ TASK_CONFIG = {
     "TA": ["target", "aspect"],
     "A": ["aspect"],
     "T": ["target"],
-    "TAS": ["target", "aspect", "polarity"]
+    "TAS": ["target", "aspect", "polarity"],
+    "TAS_Implicity": ["target", "aspect", "polarity"],
+    "TAS_Implicity_Only": ["target", "aspect", "polarity"],
 }
 
 if __name__ == "__main__":
     res15_results = []
     res16_results = []
     output_dir = "../TTEE_output/output"
+    contains = []
+    not_contains = []
+    re_evaluate = True
+    save_res = True
     for exp in os.listdir(output_dir):
+        if contains and not all(map(lambda x:x in exp, contains)):
+            continue
 
+        if not_contains and any(map(lambda x:x in exp, not_contains)):
+            continue
         print(exp)
-        if "eval_results.csv" in os.listdir(f"{output_dir}/{exp}"):
+        if not re_evaluate and "eval_results.csv" in os.listdir(f"{output_dir}/{exp}"):
             df = pd.read_csv(f"{output_dir}/{exp}/eval_results.csv", index_col="Unnamed: 0")
             print(df)
             print()
@@ -123,17 +157,18 @@ if __name__ == "__main__":
             continue
         try:
             evaluator = MultiTaskEvaluatior(TASK_CONFIG, f"{output_dir}/{exp}")
-            df = evaluator.full_evaluate(True)
+            df = evaluator.full_evaluate(save_res)
             res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
-        except:
-            print("exp result not complete!")
+        except Exception as e:
+            print(e)
             print()
             continue
     
 
 
     def get_best_score_each_task(results):
-        res = {"AS":[], "TS":[], "TA":[], "A":[], "T":[], "TAS":[]}
+        # res = {"AS":[], "TS":[], "TA":[], "A":[], "T":[], "TAS":[]}
+        res = {task: [] for task in TASK_CONFIG}
         for exp, df in results:
             for task in res:
                 res[task].append((df.loc[task]["f1"], exp))
