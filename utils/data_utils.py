@@ -79,6 +79,11 @@ def infer_tokenized_label(start, end, offsets_mapping):
     else:
         return new_start, new_end
 
+def format_tokenized_label(start, end):
+    if start == end == -1:
+        return 0, 1
+    else:
+        return start + 1, end + 1
 
 def convert_batch_label_to_batch_tokenized_label(offsets_mapping, triplets, max_len):
     # tokens_id = tokenizer(text, return_offsets_mapping=True)
@@ -194,7 +199,7 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end(offsets_mapping, tri
 
 
 
-def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping, triplets, language="en"):
+def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping, triplets, language="en", tokenized_label=False):
     if language == "en":
         category_label_mapping = CATEGORY_LABEL_MAPPING
         sentiment_label_mapping = SENTIMENT_LABEL_MAPPING
@@ -213,7 +218,10 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping,
             senti_idx = sentiment_label_mapping[triplet['polarity']]
             aspect_senti_idx = aspect_idx * num_sentiments + senti_idx
             start, end = int(triplet['from']), int(triplet['to'])
-            new_start, new_end = infer_tokenized_label(start, end, offsets_mapping)
+            if tokenized_label:
+                new_start, new_end = format_tokenized_label(start, end)
+            else:
+                new_start, new_end = infer_tokenized_label(start, end, offsets_mapping) 
 
             # create label
             cls_label[aspect_senti_idx] = 1

@@ -2,6 +2,7 @@ import json
 import os
 import numpy as np
 import pandas as pd
+import re
 from tqdm import tqdm
 from collections import namedtuple
 # from utils.eval_utils import compute_f1
@@ -69,8 +70,8 @@ class MultiTaskEvaluatior(object):
         for name, elements in task_config.items():
             self.task_pools[name] = Task(name, elements)
 
-        self.output_results = [json.load(open(os.path.join(
-            output_dir, fn))) for fn in os.listdir(output_dir) if fn.endswith(".json")]
+        files = sorted([fn for fn in os.listdir(output_dir) if fn.endswith(".json")], key=lambda x: int(re.match('epoch(\d+)_res16.json', x).group(1)))
+        self.output_results = [json.load(open(os.path.join(output_dir, fn))) for fn in files]
         self.eval_results = {k: {"p": [], "r": [], "f1": []}
                              for k in task_config}
 
@@ -140,8 +141,8 @@ if __name__ == "__main__":
     output_dir = "../TTEE_output/output"
     contains = []
     not_contains = []
-    re_evaluate = True
-    save_res = True
+    re_evaluate = False
+    save_res = False
     for exp in os.listdir(output_dir):
         if contains and not all(map(lambda x:x in exp, contains)):
             continue

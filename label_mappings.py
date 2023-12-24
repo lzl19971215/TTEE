@@ -117,6 +117,30 @@ ASPECT_SENTENCE = {
 
     ]
 }
+
+ASPECT_SENTENCE_ACOS_LAPTOP = {
+    "texts": [
+        "general of ambience",
+        "price of drinks",
+        "quality of drinks",
+        "style options of drinks",
+        "prices of food",
+        "quality of food",
+        "style options of food",
+        "general of location",
+        "general of restaurant",
+        "miscellaneous of restaurant",
+        "prices of restaurant",
+        "general of service"
+    ],
+
+    "sentiments": [
+        "negative",
+        "neutral",
+        "positive"
+    ]
+}
+
 NUM_CATEGORIES = 12
 
 
