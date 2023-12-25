@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 from xml.etree import ElementTree
-from transformers import AutoTokenizer
+# from transformers import AutoTokenizer
 from utils.data_utils import convert_batch_label_to_batch_tokenized_label, \
     convert_batch_label_to_batch_tokenized_label_end_to_end, convert_batch_label_to_batch_tokenized_label_end_to_end_BIO
 from label_mappings import SENTENCE_B, ASPECT_SENTENCE, ASPECT_SENTENCE_CHINESE, ASPECT_SENTENCE_ACOS_LAPTOP
@@ -397,7 +397,7 @@ class ACOSDataset(BaseSemEvalDataSet):
 
     
     def xml2list(self):
-        categories = set()
+        # categories = set()
         string_result = []
         with open(self.file_path, encoding='utf-8') as f:
             for row in f:
@@ -411,7 +411,7 @@ class ACOSDataset(BaseSemEvalDataSet):
                     start, end = items[0].split(',')
                     target = None if start == end == '-1' else " ".join(split_text[int(start): int(end)])
                     category = items[1]
-                    categories.add(category)
+                    # categories.add(category)
                     if items[2] == '0':
                         polarity = 'negative'
                     elif items[2] == '1':
@@ -432,6 +432,7 @@ class ACOSDataset(BaseSemEvalDataSet):
                         'to': tup.end
                     })
                 string_result.append((text, json.dumps(triplets_list, ensure_ascii=False)))
+        # self.categories = categories
         return string_result  
 
 class ChineseDataset(BaseSemEvalDataSet):
@@ -738,6 +739,21 @@ if __name__ == '__main__':
     # dataset = EnglishDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
     tokenizer = None
     dataset = ACOSDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
+    # train_cate = dataset.categories
+    # dataset = ACOSDataset('data/Laptop-ACOS/laptop_quad_dev.tsv', tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
+    # dev_cate = dataset.categories
+    # dataset = ACOSDataset('data/Laptop-ACOS/laptop_quad_test.tsv', tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
+    # test_cate = dataset.categories
+    # all_cate = list(train_cate | dev_cate | test_cate)
+    # all_cate.sort(key=lambda x: x.split('#'))
+    # all_cate = [" of ".join(each.lower().replace("_", " ").split("#")[::-1]) for each in all_cate]
+    # sentence_b = { 'texts': all_cate, 'sentiments': [
+    #     "negative",
+    #     "neutral",
+    #     "positive"
+    # ] }
+    # json.dump(sentence_b, open('acos_laptop_mapping.json', 'w', encoding='utf-8'))
+
     ds = tf.data.Dataset.from_generator(
         dataset.generate_string_sample,
         output_types=(tf.string, tf.string)
