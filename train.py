@@ -10,7 +10,7 @@ import numpy as np
 from models.single_tower_model import AspectSentimentModel
 from models.double_tower_model import DoubleTowerAspectSentimentModel
 from models.end_to_end_model import End2EndAspectSentimentModel
-from my_datasets import ChineseDataset, EnglishDataset, PreTrainDataset
+from my_datasets import ChineseDataset, EnglishDataset, PreTrainDataset, ACOSDataset
 from label_mappings import *
 from transformers import AutoTokenizer
 from utils.data_utils import prepare_logger
@@ -40,6 +40,7 @@ def arg_parse():
     parser.add_argument("--data_aug", help="数据增强策略", default=None, type=int)
     parser.add_argument("--dataset", help="数据集", default="res16", type=str)
     parser.add_argument("--train_batch_size", help="训练batch size", default=16, type=int)
+    parser.add_argument("--aspect_senti_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
     parser.add_argument("--test_batch_size", help="测试batch size", default=32, type=int)
     parser.add_argument("--epochs", help="训练epoch数量", default=30, type=int)
     parser.add_argument("--valid_freq", help="验证的频率", default=1, type=int)
@@ -72,8 +73,7 @@ def arg_parse():
     parser.add_argument("--pretrain_data", help="预训练数据文件名称", type=str)
     return parser.parse_args()
 
-
-language = "en"
+args = arg_parse()
 
 single_signature = [
     tf.TensorSpec(shape=(None, None), dtype=tf.int32),
@@ -90,8 +90,10 @@ single_signature = [
 aspect_signature = [tf.TensorSpec(shape=(None, None), dtype=tf.int32)] * 3
 double_signature = single_signature + aspect_signature
 
-if language == "en":
+if args.dataset == "res15" or args.dataset == "res16":
     num_asp_senti_pairs = len(ASPECT_SENTENCE['texts']) * 3
+elif args.dataset == "laptop_acos":
+    num_asp_senti_pairs = len(ASPECT_SENTENCE_ACOS_LAPTOP['texts']) * 3
 else:
     num_asp_senti_pairs = len(ASPECT_SENTENCE_CHINESE['texts']) * 3
 
@@ -149,34 +151,47 @@ class ABSATrainer(object):
         self.loss_metrics = [tf.keras.metrics.Mean(name=name + " " + "Loss") for name in self.loss_metrics_names]
         self.acc_metrics = [tf.keras.metrics.Mean(name=name + " " + "Acc") for name in self.acc_metrics_names]
         self.Result_tuple = namedtuple("result", ["target", "category", "polarity"])
+        self.aspect_senti_batch_size = args.aspect_senti_batch_size
+        self.accumulated_gradients = [tf.Variable(tf.zeros_like(var), trainable=False) for var in self.model.trainable_variables]
 
     @tf.function(input_signature=[end_to_end_signature])
     def step(self, inputs):
-        with tf.GradientTape() as tape:
-            if isinstance(self.model, AspectSentimentModel):
-                loss, acc = self.model(
-                    inputs=inputs,
-                    phase="train"
-                )
-            elif self.model_type == "double_tower":
-                texts_inputs = inputs[:-3]
-                aspect_inputs = inputs[-3:]
-                loss, acc = self.model(
-                    text_inputs=texts_inputs,
-                    aspect_inputs=aspect_inputs
-                )
-            elif self.model_type == "end_to_end":
-                text_inputs = inputs[:3]
-                label_inputs = inputs[3:5]
-                aspect_senti_inputs = inputs[5:]
-                loss, acc = self.model(
-                    text_inputs=text_inputs,
-                    aspect_inputs=aspect_senti_inputs,
-                    label_inputs=label_inputs,
-                    phase="train"
-                )
-        gradients = tape.gradient(loss[-1], self.model.trainable_variables)
-        self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+        n_asp_senti = tf.shape(inputs[3])[1]
+        n_asp_senti_batches = tf.constant(1) if self.aspect_senti_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_batch_size), tf.int32)
+        asp_senti_batch_size = n_asp_senti if self.aspect_senti_batch_size == -1 else tf.constant(self.aspect_senti_batch_size)
+        for i in tf.range(n_asp_senti_batches):
+            start = i * asp_senti_batch_size
+            end = (i + 1) * asp_senti_batch_size
+            with tf.GradientTape() as tape:
+                if isinstance(self.model, AspectSentimentModel):
+                    loss, acc = self.model(
+                        inputs=inputs,
+                        phase="train"
+                    )
+                elif self.model_type == "double_tower":
+                    texts_inputs = inputs[:-3]
+                    aspect_inputs = inputs[-3:]
+                    loss, acc = self.model(
+                        text_inputs=texts_inputs,
+                        aspect_inputs=aspect_inputs
+                    )
+                elif self.model_type == "end_to_end":
+                    text_inputs = inputs[:3]
+                    label_inputs = [each[:, start: end] for each in inputs[3:5]]
+                    aspect_senti_inputs = [each[start: end] for each in inputs[5:]]
+                    loss, acc = self.model(
+                        text_inputs=text_inputs,
+                        aspect_inputs=aspect_senti_inputs,
+                        label_inputs=label_inputs,
+                        phase="train",
+                        asp_senti_batch_idx=start
+                    )
+            gradients = tape.gradient(loss[-1], self.model.trainable_variables)
+            for i, grad in enumerate(gradients):
+                self.accumulated_gradients[i].assign_add(grad)
+        self.optimizer.apply_gradients(zip(self.accumulated_gradients, self.model.trainable_variables))
+        for var in self.accumulated_gradients:
+            var.assign(tf.zeros_like(var))
         self.metrics.update_state(loss[-1])
         for idx, loss_metric in enumerate(self.loss_metrics):
             loss_metric.update_state(loss[idx])
@@ -478,7 +493,12 @@ def prepare_modules(
     if args.pretrain:
         Dataset = PreTrainDataset
     elif lang == "en":
-        Dataset = EnglishDataset
+        if args.dataset == 'res16' or args.dataset == 'res15':
+            Dataset = EnglishDataset
+        elif args.dataset == 'laptop_acos':
+            Dataset = ACOSDataset
+        else:
+            raise ValueError(f"Error dataset {lang}, should be ['res15', 'res16', 'laptop_acos']")
     elif lang == "cn":
         Dataset = ChineseDataset
     else:
@@ -527,7 +547,7 @@ def prepare_modules(
     if model_checkpoint is not None:
         logger.info("Loading parameters from checkpoint: %s" % ckpt_path)
         ckpt.restore(ckpt_path)
-    # model.build_params()
+    model.build_params()
     # print(model.contain_dense.trainable_variables)      
     if args.decay_steps > 0:
         lr = tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=learning_rate, decay_steps=args.decay_steps, decay_rate=args.decay_rate, staircase=True)
@@ -541,13 +561,15 @@ def prepare_modules(
 
 if __name__ == '__main__':
     set_seed(1)
-    args = arg_parse()
     language = args.language
 
     if args.model_type in ["single_tower", "double_tower"]:
         sentence_b = SENTENCE_B['cased']
     elif language == "en":
-        sentence_b = ASPECT_SENTENCE
+        if args.dataset == "res16" or args.dataset == "res15":
+            sentence_b = ASPECT_SENTENCE
+        elif args.dataset == "laptop_acos":
+            sentence_b = ASPECT_SENTENCE_ACOS_LAPTOP      
     else:
         sentence_b = ASPECT_SENTENCE_CHINESE
 
@@ -575,7 +597,8 @@ if __name__ == '__main__':
         "extra_attention": args.extra_attention,
         "hot_attention": args.hot_attention,
         "dropout": args.dropout_rate,
-        "loss_ratio": args.loss_ratio
+        "loss_ratio": args.loss_ratio,
+        "train_batch_size": args.train_batch_size
     }
     model_type = args.model_type
     mask_sb = args.mask_sb
@@ -600,6 +623,9 @@ if __name__ == '__main__':
         elif args.dataset == "res15":
             train_data_path = "./data/semeval2015/ABSA-15_Restaurants_Train_Final.xml"
             test_data_path = "./data/semeval2015/ABSA15_Restaurants_Test.xml"
+        elif args.dataset == "laptop_acos":
+            train_data_path = "./data/Laptop-ACOS/processed_data/laptop_quad_train.tsv"
+            test_data_path = "./data/Laptop-ACOS/processed_data/laptop_quad_test.tsv"
     else:
         train_data_path = "./data/semeval2016/phone_chinese/labeled_phone.csv"
     # tokenizer = AutoTokenizer.from_pretrained(config['init_bert_model'], cache_dir=config['cache_dir'])

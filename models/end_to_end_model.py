@@ -178,7 +178,8 @@ class End2EndAspectSentimentModel(Model):
             extra_attention=True,
             hot_attention=False,
             dropout=0.1,
-            loss_ratio=1.0
+            loss_ratio=1.0,
+            train_batch_size=16
 
     ):
         super(End2EndAspectSentimentModel, self).__init__()
@@ -230,12 +231,15 @@ class End2EndAspectSentimentModel(Model):
             "extra_attention": extra_attention,
             "hot_attention": hot_attention,
             "dropout": dropout,
-            "loss_ratio": loss_ratio
+            "loss_ratio": loss_ratio,
+            "train_batch_size": train_batch_size
         }
         self.fuse_strategy = fuse_strategy
         self.pooling = pooling
+        self.train_batch_size = train_batch_size
         self.num_aspect_senti = len(sentence_b["texts"]) * len(sentence_b["sentiments"])
         self.asp_senti_cache = tf.Variable(tf.zeros((self.num_aspect_senti, 768)), trainable=False)
+        self.context_cache = tf.Variable(tf.zeros((train_batch_size, 512, 768)), trainable=False)
         self.updated = tf.Variable(initial_value=False, dtype=tf.bool, trainable=False)
         self.alpha = loss_ratio if loss_ratio > 1 else 1
         self.beta = 1 if loss_ratio > 1 else 1 / loss_ratio
@@ -254,18 +258,23 @@ class End2EndAspectSentimentModel(Model):
             aspect_inputs,
             label_inputs=None,
             phase="train",
+            asp_senti_batch_idx=0,
             output_attentions=False
     ):
         training = phase == "train"
         input_ids, token_type_ids, attention_mask = text_inputs
         # get bert output
-        bert_output = self.bert(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            token_type_ids=token_type_ids,
-            training=(phase == "train")
-        )
-        text_states, text_cls_states = bert_output.last_hidden_state, bert_output.pooler_output
+        if asp_senti_batch_idx == 0:
+            bert_output = self.bert(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                token_type_ids=token_type_ids,
+                training=(phase == "train")
+            )
+            text_states, _ = bert_output.last_hidden_state, bert_output.pooler_output
+            self.context_cache[:tf.shape(text_states)[0], :tf.shape(text_states)[1]].assign(text_states)
+        else:
+            text_states = self.context_cache[:tf.shape(input_ids)[0], :tf.shape(input_ids)[1]]
 
         if phase == "train":
             asp_senti_output = self.bert(
@@ -275,7 +284,7 @@ class End2EndAspectSentimentModel(Model):
                 training=True
             )
             asp_senti_cls_states = asp_senti_output.pooler_output
-            self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(self.num_aspect_senti)))
+            self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(asp_senti_cls_states)[0])))
         elif phase == "pretrain":
             asp_senti_output = self.bert(
                 input_ids=aspect_inputs[0],

@@ -1,4 +1,5 @@
 export CUDA_VISIBLE_DEVICES=${1:-0}
+export TF_CPP_MIN_LOG_LEVEL=2
 
 LOG_PATH=${2:- ""}
 SAVE_DIR=${3:- ""}
@@ -6,25 +7,28 @@ echo ${LOG_PATH}
 echo ${SAVE_DIR}
 
 python train.py \
+    --task_name="debug" \
     --do_train \
     --do_valid \
     --do_test \
-    --cased \
-    --mask_sb \
+    --cased=0 \
+    --schema="BIO" \
+    --dataset="laptop_acos" \
     --model_type="end_to_end" \
-    --log_path="${LOG_PATH}" \
+    --output_dir="${LOG_PATH}" \
     --save_dir="${SAVE_DIR}" \
-    --epochs=70 \
-    --dropout_rate=0.1 \
+    --epochs=30 \
+    --dropout_rate=0.2 \
     --valid_freq=1 \
     --train_batch_size=16 \
-    --test_batch_size=32 \
+    --test_batch_size=16 \
+    --aspect_senti_batch_size=12 \
     --lr=2e-5 \
-    --d_block=256 \
-    --fuse_strategy="update" \
+    --d_block=128 \
+    --fuse_strategy="gate" \
     --block_att_head_num=1 \
     --language=en \
     --drop_null_data \
     --extra_attention \
-    --data_aug=2 \
-    --loss_ratio=8
+    --data_aug=1 \
+    --loss_ratio=1

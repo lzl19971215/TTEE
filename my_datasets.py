@@ -4,7 +4,6 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 from xml.etree import ElementTree
-# from transformers import AutoTokenizer
 from utils.data_utils import convert_batch_label_to_batch_tokenized_label, \
     convert_batch_label_to_batch_tokenized_label_end_to_end, convert_batch_label_to_batch_tokenized_label_end_to_end_BIO
 from label_mappings import SENTENCE_B, ASPECT_SENTENCE, ASPECT_SENTENCE_CHINESE, ASPECT_SENTENCE_ACOS_LAPTOP
@@ -23,7 +22,7 @@ class BaseSemEvalDataSet(object):
         self.tagging_schema = tagging_schema
         self.string_sentences = self.xml2list()
         if self.drop_null:
-            self.string_sentences = [each for each in self.string_sentences if eval(each[1])]
+            self.string_sentences = [each for each in self.string_sentences if len(json.loads(each[1]))]
         self.mask_sb = mask_sb
         self.model_type = model_type
         self.is_label_after_tokenized = is_label_after_tokenized
@@ -253,8 +252,10 @@ class BaseSemEvalDataSet(object):
             ner_label, cls_label = raw_label_to_tokenized_label_func(
                 offsets_mapping=offsets_mapping,
                 triplets=triplet,
+                aspect_sentiment_mapping=self.sentence_b,
                 language=self.language,
-                tokenized_label=self.is_label_after_tokenized
+                tokenized_label=self.is_label_after_tokenized,
+                origin_text=origin_texts[i]
             )
 
             # one_position_ids = [i for i in range(max_len)]
@@ -392,34 +393,25 @@ class EnglishDataset(BaseSemEvalDataSet):
 class ACOSDataset(BaseSemEvalDataSet):
     def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
         self.Triplet = namedtuple('triplet', ['target', 'category', 'polarity', 'start', 'end'])
-        super(ACOSDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null, is_label_after_tokenized=True)
+        super(ACOSDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
         self.language = "en"
 
     
     def xml2list(self):
-        # categories = set()
         string_result = []
         with open(self.file_path, encoding='utf-8') as f:
             for row in f:
                 row = row.strip().split('\t')
                 text = row[0]
-                quotes = row[1:]
-                split_text = text.split()
+                trips = row[1:]
                 triplets = set()
-                for quote in quotes:
-                    items = quote.split()
+                for trip in trips:
+                    items = trip.split()
                     start, end = items[0].split(',')
-                    target = None if start == end == '-1' else " ".join(split_text[int(start): int(end)])
+                    target = None if start == end == '0' else text[int(start): int(end)]
+
                     category = items[1]
-                    # categories.add(category)
-                    if items[2] == '0':
-                        polarity = 'negative'
-                    elif items[2] == '1':
-                        polarity = 'neutral'
-                    elif items[2] == '2':
-                        polarity = 'positive'
-                    else:
-                        raise ValueError(f'Unexpected sentiment code: {items[2]}')
+                    polarity = items[2]
                      
                     triplets.add(self.Triplet(target, category, polarity, start, end))
                 triplets_list = []
@@ -432,7 +424,6 @@ class ACOSDataset(BaseSemEvalDataSet):
                         'to': tup.end
                     })
                 string_result.append((text, json.dumps(triplets_list, ensure_ascii=False)))
-        # self.categories = categories
         return string_result  
 
 class ChineseDataset(BaseSemEvalDataSet):
@@ -733,39 +724,28 @@ class PreTrainDataset(object):
         return result
 
 if __name__ == '__main__':
-    file_path = 'data/Laptop-ACOS/laptop_quad_train.tsv'
-    # tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
-    # tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+    from transformers import AutoTokenizer
+    file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', cache_dir='bert_models/bert-base-uncased')
+    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     # dataset = EnglishDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
-    tokenizer = None
-    dataset = ACOSDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
-    # train_cate = dataset.categories
-    # dataset = ACOSDataset('data/Laptop-ACOS/laptop_quad_dev.tsv', tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
-    # dev_cate = dataset.categories
-    # dataset = ACOSDataset('data/Laptop-ACOS/laptop_quad_test.tsv', tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
-    # test_cate = dataset.categories
-    # all_cate = list(train_cate | dev_cate | test_cate)
-    # all_cate.sort(key=lambda x: x.split('#'))
-    # all_cate = [" of ".join(each.lower().replace("_", " ").split("#")[::-1]) for each in all_cate]
-    # sentence_b = { 'texts': all_cate, 'sentiments': [
-    #     "negative",
-    #     "neutral",
-    #     "positive"
-    # ] }
-    # json.dump(sentence_b, open('acos_laptop_mapping.json', 'w', encoding='utf-8'))
-
-    ds = tf.data.Dataset.from_generator(
-        dataset.generate_string_sample,
-        output_types=(tf.string, tf.string)
-    )
-    bd = ds.batch(batch_size=8).map(dataset.wrap_map)
-    for a, b in ds.batch(8):
-        dataset.map_batch_string_to_tensor_end_to_end(a, b)
-    input_ids = tokenizer(SENTENCE_B['text'], return_offsets_mapping=True, add_special_tokens=False)['input_ids']
-    tt = tokenizer.convert_ids_to_tokens(input_ids)
+    # tokenizer = None
+    for fp in file_path:
+        dataset = ACOSDataset(fp, tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
+        
+        ds = tf.data.Dataset.from_generator(
+            dataset.generate_string_sample,
+            output_types=(tf.string, tf.string)
+        )
+        # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
+        for a, b in ds.batch(32):
+            dataset.map_batch_string_to_tensor_end_to_end(a, b)
+        print("success to batch ", fp)
+    # input_ids = tokenizer(SENTENCE_B['text'], return_offsets_mapping=True, add_special_tokens=False)['input_ids']
+    # tt = tokenizer.convert_ids_to_tokens(input_ids)
     
-    testtokenizer = TestTokenizer(tokenizer, SENTENCE_B)
-    testtokenizer.tokenize(['I like the fish!'])
+    # testtokenizer = TestTokenizer(tokenizer, SENTENCE_B)
+    # testtokenizer.tokenize(['I like the fish!'])
     # pt = PreTrainDataset("data/amazon_review_processed.csv", tokenizer=tokenizer)
     # ds = tf.data.Dataset.from_generator(
     #     pt.data_generator,

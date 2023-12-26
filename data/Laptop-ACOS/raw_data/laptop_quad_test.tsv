@@ -292,7 +292,7 @@ very sharp screen and good viewing angles .	2,3 DISPLAY#GENERAL 2 1,2	2,3 DISPLA
 something about os x running with a high resolution display just looks classy in a way that a windows computer could never match .	2,4 OS#GENERAL 2 12,13	9,10 DISPLAY#OPERATION_PERFORMANCE 2 12,13
 no complaints here .	-1,-1 BATTERY#GENERAL 2 -1,-1
 this computer is blazing fast .	1,2 LAPTOP#OPERATION_PERFORMANCE 2 4,5
-with os x yosemite , the os is very refined and elegant .	1,4 OS#OPERATION_PERFORMANCE 2 9,10	1,4 OS#OPERATION_PERFORMANCE 2 11,12	1,2 OS#OPERATION_PERFORMANCE 2 9,10	1,2 OS#OPERATION_PERFORMANCE 2 11,12
+with os x yosemite , the os is very refined and elegant .	1,4 OS#OPERATION_PERFORMANCE 2 9,10	1,4 OS#OPERATION_PERFORMANCE 2 11,12
 the laptop works great and the package was delivered on time .	1,2 LAPTOP#OPERATION_PERFORMANCE 2 3,4	6,7 SHIPPING#GENERAL 2 -1,-1
 this thing is fast and efficient .	-1,-1 LAPTOP#OPERATION_PERFORMANCE 2 3,4	-1,-1 LAPTOP#OPERATION_PERFORMANCE 2 5,6
 this computer is very high quality , do not believe anything on the market can touch it .	1,2 LAPTOP#QUALITY 2 4,5

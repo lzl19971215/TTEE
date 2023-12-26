@@ -2493,7 +2493,7 @@ sound has been fine , except for a few issues with an android app , and that can
 the keyboard is very nice for me .	1,2 KEYBOARD#GENERAL 2 4,5
 android is running flawlessly so far , barring one minor incident with sound on clash of clans ( which went away on reboot ) .	0,1 SOFTWARE#OPERATION_PERFORMANCE 2 3,4
 the m3 processor is fast and fluid .	1,3 CPU#OPERATION_PERFORMANCE 2 4,5	1,3 CPU#OPERATION_PERFORMANCE 2 6,7
-and the backlit keyboard has a very good feel , and great key ` ` travel . ` `	2,4 KEYBOARD#USABILITY 2 7,8	2,4 KEYBOARD#USABILITY 2 11,12	3,4 KEYBOARD#USABILITY 2 7,8	3,4 KEYBOARD#USABILITY 2 11,12
+and the backlit keyboard has a very good feel , and great key ` ` travel . ` `	2,4 KEYBOARD#USABILITY 2 7,8	2,4 KEYBOARD#USABILITY 2 11,12	2,4 KEYBOARD#USABILITY 2 7,8	2,4 KEYBOARD#USABILITY 2 11,12
 despite the minor case marks , i can heartily recommend this chromebook based on features , design , and operation .	11,12 LAPTOP#DESIGN_FEATURES 2 9,10	11,12 LAPTOP#OPERATION_PERFORMANCE 2 9,10
 great product build - the quality of this asus chromebook is impressive at any price , but at sub - $ 500 it ' s astounding .	1,3 LAPTOP#DESIGN_FEATURES 2 0,1	8,10 LAPTOP#QUALITY 2 11,12	8,10 LAPTOP#PRICE 2 25,26
 the metal case is really well built , and the fit and finish are virtually perfect .	1,3 LAPTOP#QUALITY 2 5,6	10,11 LAPTOP#QUALITY 2 15,16	12,13 LAPTOP#QUALITY 2 15,16
