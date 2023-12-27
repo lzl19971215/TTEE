@@ -41,6 +41,7 @@ def arg_parse():
     parser.add_argument("--dataset", help="数据集", default="res16", type=str)
     parser.add_argument("--train_batch_size", help="训练batch size", default=16, type=int)
     parser.add_argument("--aspect_senti_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
+    parser.add_argument("--aspect_senti_test_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
     parser.add_argument("--test_batch_size", help="测试batch size", default=32, type=int)
     parser.add_argument("--epochs", help="训练epoch数量", default=30, type=int)
     parser.add_argument("--valid_freq", help="验证的频率", default=1, type=int)
@@ -62,6 +63,7 @@ def arg_parse():
     parser.add_argument("--do_valid", help="是否进行验证", default=False, action="store_true")
     parser.add_argument("--do_test", help="是否进行测试", default=False, action="store_true")
     parser.add_argument("--language", help="语言", default="en", type=str)
+    parser.add_argument("--bert_size", help="预训练模型大小", default="base", type=str)
     parser.add_argument("--drop_null_data", help="是否在训练与测试集中去掉不包含三元组的句子", default=False, action="store_true")
     parser.add_argument("--loss_ratio", help="ner loss与detection loss的比例", default=1, type=float)
 
@@ -152,6 +154,7 @@ class ABSATrainer(object):
         self.acc_metrics = [tf.keras.metrics.Mean(name=name + " " + "Acc") for name in self.acc_metrics_names]
         self.Result_tuple = namedtuple("result", ["target", "category", "polarity"])
         self.aspect_senti_batch_size = args.aspect_senti_batch_size
+        self.aspect_senti_test_batch_size = args.aspect_senti_test_batch_size
         self.accumulated_gradients = [tf.Variable(tf.zeros_like(var), trainable=False) for var in self.model.trainable_variables]
 
     @tf.function(input_signature=[end_to_end_signature])
@@ -254,7 +257,7 @@ class ABSATrainer(object):
         return loss_list, acc_list
 
 
-    def train_and_eval(self, epoch, train_loader, valid_loader=None, valid_freq=1, save_dir=None, do_test=True):
+    def train_and_eval(self, epoch, train_loader, valid_loader=None, valid_freq=1, save_dir=None, do_train=True, do_test=True):
         loss_list = []
         acc_list = []
         best_f1 = 0.0
@@ -267,44 +270,45 @@ class ABSATrainer(object):
             n_steps = int(np.ceil(len(trainer.train_dataset) / self.args.train_batch_size))
             # train
             # for idx, inputs in tqdm(enumerate(train_loader), total=n_steps, desc=f"epoch {epoch}"):
-            for idx, inputs in enumerate(train_loader):
-                train_loss, train_acc = self.step(inputs)
-                loss_list.append([item.numpy() for item in train_loss])
-                acc_list.append([item.numpy() for item in train_acc])
+            if do_train:
+                for idx, inputs in enumerate(train_loader):
+                    train_loss, train_acc = self.step(inputs)
+                    loss_list.append([item.numpy() for item in train_loss])
+                    acc_list.append([item.numpy() for item in train_acc])
 
-            # self.logger.info("Epoch {}: ".format(epoch))
-            # self.logger.info("Train:")
-            # self.logger.info(
-            #     "Loss {:.4f}, NER Loss {:.4f}, Target Aspect Loss {:.4f}, Target Sentiment Loss {:.4f}".format(
-            #         self.metrics.result(),
-            #         self.loss_metrics[0].result(),
-            #         self.loss_metrics[1].result(),
-            #         self.loss_metrics[2].result(),
-            #     ))
-            loss_result = [(metric.name, metric.result().numpy().item()) for metric in self.loss_metrics]
-            acc_result = [(metric.name, metric.result().numpy().item()) for metric in self.acc_metrics]
-            loss_str = ",  ".join(str(each) for each in loss_result)
-            acc_str = ",  ".join(str(each) for each in acc_result)
-            # self.logger.info(
-            #     "Loss {:.4f}, {}".format(
-            #         self.metrics.result(),
-            #         loss_str
-            #     ))
-            # self.logger.info("Ner Acc {:.4f}, Target Aspect Acc {:.4f}, Target Sentiment Acc {:.4f}".format(
-            #     self.acc_mertrics[0].result(),
-            #     self.acc_mertrics[1].result(),
-            #     self.acc_mertrics[2].result()
-            # ))
-            # self.logger.info("{}".format(
-            #     acc_str
-            # ))
-            train_log = "Epoch {} Train: Loss {:.4f}, {}, {}".format(epoch, self.metrics.result(), loss_str, acc_str)
-            self.logger.info(train_log)   
+                # self.logger.info("Epoch {}: ".format(epoch))
+                # self.logger.info("Train:")
+                # self.logger.info(
+                #     "Loss {:.4f}, NER Loss {:.4f}, Target Aspect Loss {:.4f}, Target Sentiment Loss {:.4f}".format(
+                #         self.metrics.result(),
+                #         self.loss_metrics[0].result(),
+                #         self.loss_metrics[1].result(),
+                #         self.loss_metrics[2].result(),
+                #     ))
+                loss_result = [(metric.name, metric.result().numpy().item()) for metric in self.loss_metrics]
+                acc_result = [(metric.name, metric.result().numpy().item()) for metric in self.acc_metrics]
+                loss_str = ",  ".join(str(each) for each in loss_result)
+                acc_str = ",  ".join(str(each) for each in acc_result)
+                # self.logger.info(
+                #     "Loss {:.4f}, {}".format(
+                #         self.metrics.result(),
+                #         loss_str
+                #     ))
+                # self.logger.info("Ner Acc {:.4f}, Target Aspect Acc {:.4f}, Target Sentiment Acc {:.4f}".format(
+                #     self.acc_mertrics[0].result(),
+                #     self.acc_mertrics[1].result(),
+                #     self.acc_mertrics[2].result()
+                # ))
+                # self.logger.info("{}".format(
+                #     acc_str
+                # ))
+                train_log = "Epoch {} Train: Loss {:.4f}, {}, {}".format(epoch, self.metrics.result(), loss_str, acc_str)
+                self.logger.info(train_log)   
 
-            self.metrics.reset_states()
-            for lm, am in zip(self.loss_metrics, self.acc_metrics):
-                lm.reset_states()
-                am.reset_states()
+                self.metrics.reset_states()
+                for lm, am in zip(self.loss_metrics, self.acc_metrics):
+                    lm.reset_states()
+                    am.reset_states()
 
             # valid
             if valid_loader and epoch % valid_freq == 0:
@@ -354,29 +358,36 @@ class ABSATrainer(object):
 
     @tf.function(input_signature=[end_to_end_signature])
     def evaluate_step(self, inputs):
-        if self.model_type == "single_tower":
-            loss, acc = self.model(
-                inputs=inputs,
-                phase="valid"
-            )
-        elif self.model_type == "double_tower":
-            texts_inputs = inputs[:-3]
-            aspect_inputs = inputs[-3:]
-            loss, acc = self.model(
-                text_inputs=texts_inputs,
-                aspect_inputs=aspect_inputs,
-                phase="valid"
-            )
-        else:
-            texts_inputs = inputs[:3]
-            aspect_inputs = inputs[5:]
-            label_inputs = inputs[3:5]
-            loss, acc = self.model(
-                text_inputs=texts_inputs,
-                aspect_inputs=aspect_inputs,
-                label_inputs=label_inputs,
-                phase="valid"
-            )
+        n_asp_senti = tf.shape(inputs[3])[1]
+        n_asp_senti_batches = tf.constant(1) if self.aspect_senti_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_batch_size), tf.int32)
+        asp_senti_batch_size = n_asp_senti if self.aspect_senti_batch_size == -1 else tf.constant(self.aspect_senti_batch_size)
+        ta = tf.TensorArray(dtype=tf.float32)
+        for i in tf.range(n_asp_senti_batches):
+            start = i * asp_senti_batch_size
+            end = (i + 1) * asp_senti_batch_size
+            if self.model_type == "single_tower":
+                loss, acc = self.model(
+                    inputs=inputs,
+                    phase="valid"
+                )
+            elif self.model_type == "double_tower":
+                texts_inputs = inputs[:-3]
+                aspect_inputs = inputs[-3:]
+                loss, acc = self.model(
+                    text_inputs=texts_inputs,
+                    aspect_inputs=aspect_inputs,
+                    phase="valid"
+                )
+            else:
+                texts_inputs = inputs[:3]
+                aspect_inputs = [each[:, start: end] for each in inputs[3:5]]
+                label_inputs = [each[start: end] for each in inputs[5:]]
+                loss, acc = self.model(
+                    text_inputs=texts_inputs,
+                    aspect_inputs=aspect_inputs,
+                    label_inputs=label_inputs,
+                    phase="valid"
+                )
         return loss, acc
 
     @tf.function(input_signature=[end_to_end_signature[:3] + end_to_end_signature[-3:]])
@@ -576,14 +587,14 @@ if __name__ == '__main__':
     # settings
     if language == "en":
         if args.cased:
-            init_bert_model = 'bert-base-cased'
-            cache_dir = 'bert_models/bert-base-cased'
+            init_bert_model = f'bert-{args.bert_size}-cased'
+            cache_dir = f'bert_models/bert-{args.bert_size}-cased'
         else:
-            init_bert_model = 'bert-base-uncased'
-            cache_dir = 'bert_models/bert-base-uncased'
+            init_bert_model = f'bert-{args.bert_size}-uncased'
+            cache_dir = f'bert_models/bert-{args.bert_size}-uncased'
     else:
-        init_bert_model = 'bert-base-chinese'
-        cache_dir = 'bert_models/bert-base-chinese'
+        init_bert_model = f'bert-{args.bert_size}-chinese'
+        cache_dir = f'bert_models/bert-{args.bert_size}-chinese'
     config = {
         "init_bert_model": init_bert_model,
         "sentence_b": sentence_b,
@@ -693,6 +704,7 @@ if __name__ == '__main__':
             test_loader,
             valid_freq=args.valid_freq,
             save_dir=save_dir,
+            do_train=args.do_train,
             do_test=args.do_test
         )
 
