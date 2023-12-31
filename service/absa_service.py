@@ -62,8 +62,8 @@ if __name__ == '__main__':
     en_saved_model_path = "saved_models/en_aug23_cache"
     cn_tokenizer = AutoTokenizer.from_pretrained("bert-base-chinese", cache_dir="../models/bert-base-chinese")
     en_tokenizer = AutoTokenizer.from_pretrained("bert-base-cased", cache_dir="../models/bert-base-cased")
-    cn_test_tokenizer = TestTokenizer(cn_tokenizer, ASPECT_SENTENCE, False, "end_to_end")
-    en_test_tokenizer = TestTokenizer(en_tokenizer, ASPECT_SENTENCE_CHINESE, False, "end_to_end")
+    cn_test_tokenizer = TestTokenizer(cn_tokenizer, RES1516_LABEL_MAPPING, False, "end_to_end")
+    en_test_tokenizer = TestTokenizer(en_tokenizer, PHONE_CHINESE_LABEL_MAPPING, False, "end_to_end")
     cn_online_predictor = OnlinePredictor(cn_saved_model_path, cn_test_tokenizer, "cn")
     en_online_predictor = OnlinePredictor(en_saved_model_path, en_test_tokenizer, "en")
 

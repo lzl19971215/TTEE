@@ -637,7 +637,7 @@
             <sentence id="en_Patsy'sPizzeria_478231878:2">
                 <text>BUt once done, it&apos;s not too much dough, not too much cheese, not too much sauce.</text>
                 <Opinions>
-                    <Opinion target="NULL" category="FOOD#QUALITY" polarity="positive" from="0" to="80"/>
+                    <Opinion target="NULL" category="FOOD#QUALITY" polarity="positive" from="0" to="0"/>
                 </Opinions>
             </sentence>
         </sentences>
@@ -3235,7 +3235,7 @@
             <sentence id="en_SchoonerOrLater_477965850:10">
                 <text>In short, Schooner or Later couldn&apos;t have cared less about our being at their establishment.</text>
                 <Opinions>
-                    <Opinion target="NULL" category="SERVICE#GENERAL" polarity="negative" from="10" to="27"/>
+                    <Opinion target="NULL" category="SERVICE#GENERAL" polarity="negative" from="0" to="0"/>
                 </Opinions>
             </sentence>
             <sentence id="en_SchoonerOrLater_477965850:11" OutOfScope="TRUE">
@@ -3756,7 +3756,7 @@
             <sentence id="en_MiopostoCaffe_479702043:9">
                 <text>Absolutely delicious.</text>
                 <Opinions>
-                    <Opinion target="NULL" category="FOOD#QUALITY" polarity="positive" from="0" to="21"/>
+                    <Opinion target="NULL" category="FOOD#QUALITY" polarity="positive" from="0" to="0"/>
                 </Opinions>
             </sentence>
             <sentence id="en_MiopostoCaffe_479702043:10">
@@ -4261,7 +4261,7 @@
                 <text>– Mercedes restaurant is so tasty, the service is undeniably awesome!</text>
                 <Opinions>
                     <Opinion target="service" category="SERVICE#GENERAL" polarity="positive" from="39" to="46"/>
-                    <Opinion target="NULL" category="FOOD#QUALITY" polarity="positive" from="2" to="21"/>
+                    <Opinion target="Mercedes restaurant" category="FOOD#QUALITY" polarity="positive" from="2" to="21"/>
                 </Opinions>
             </sentence>
             <sentence id="en_MercedesRestaurant_478010600:2">

@@ -238,9 +238,9 @@ class End2EndAspectSentimentModel(Model):
         self.pooling = pooling
         self.train_batch_size = train_batch_size
         self.num_aspect_senti = len(sentence_b["texts"]) * len(sentence_b["sentiments"])
-        d_model =  768 if 'base' in init_bert_model else 1024
-        self.asp_senti_cache = tf.Variable(tf.zeros((self.num_aspect_senti, d_model)), trainable=False)
-        self.context_cache = tf.Variable(tf.zeros((train_batch_size, 512, d_model)), trainable=False)
+        self.d_model =  768 if 'base' in init_bert_model else 1024
+        self.asp_senti_cache = tf.Variable(tf.zeros((self.num_aspect_senti, self.d_model)), trainable=False)
+        self.context_cache = tf.Variable(tf.zeros((train_batch_size, 512, self.d_model)), trainable=False)
         self.updated = tf.Variable(initial_value=False, dtype=tf.bool, trainable=False)
         self.alpha = loss_ratio if loss_ratio > 1 else 1
         self.beta = 1 if loss_ratio > 1 else 1 / loss_ratio
@@ -257,10 +257,11 @@ class End2EndAspectSentimentModel(Model):
             self,
             text_inputs,
             aspect_inputs,
+            cache_text_states,
             label_inputs=None,
             phase="train",
             asp_senti_batch_idx=0,
-            output_attentions=False
+            output_attentions=False,
     ):
         training = phase == "train"
         input_ids, token_type_ids, attention_mask = text_inputs
@@ -276,14 +277,21 @@ class End2EndAspectSentimentModel(Model):
         #     self.context_cache[:tf.shape(text_states)[0], :tf.shape(text_states)[1]].assign(text_states)
         # else:
         #     text_states = self.context_cache[:tf.shape(input_ids)[0], :tf.shape(input_ids)[1]]
-
-        bert_output = self.bert(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            token_type_ids=token_type_ids,
-            training=(phase == "train")
-        )
-        text_states, _ = bert_output.last_hidden_state, bert_output.pooler_output
+        flag = tf.reduce_sum(cache_text_states)
+        # tf.print("flag: ", flag)
+        if flag == 0:
+            bert_output = self.bert(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                token_type_ids=token_type_ids,
+                training=(phase == "train")
+            )
+            # tf.print("re calculate")
+            text_states, _ = bert_output.last_hidden_state, bert_output.pooler_output
+        else:
+            # tf.print("use cache")
+            text_states = cache_text_states
+        text_states.set_shape((None, None, self.d_model))
 
         if phase == "train":
             asp_senti_output = self.bert(
@@ -318,10 +326,10 @@ class End2EndAspectSentimentModel(Model):
                 training=False
             )
             asp_senti_cls_states = asp_senti_output.pooler_output
-            self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(self.num_aspect_senti)))
+            self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(aspect_inputs[0])[0])))
             self.updated.assign(True)
         else:
-            asp_senti_cls_states = tf.nn.embedding_lookup(self.asp_senti_cache, tf.range(self.num_aspect_senti))
+            asp_senti_cls_states = tf.nn.embedding_lookup(self.asp_senti_cache, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(aspect_inputs[0])[0]))
 
         # fuse texts aspects
 
@@ -395,7 +403,7 @@ class End2EndAspectSentimentModel(Model):
             cls_predicts = tf.cast(output_cls_states > 0, tf.int32)
             cls_acc = tf.reduce_mean(tf.cast(cls_labels == cls_predicts, tf.float32))
             total_loss = self.alpha * ner_loss + self.beta * cls_loss
-            return [ner_loss, cls_loss, total_loss], [ner_acc, cls_acc]
+            return [ner_loss, cls_loss, total_loss], [ner_acc, cls_acc], text_states
         elif phase == "pretrain":
             cls_labels = label_inputs[0]
             cls_loss = self.contain_loss(cls_labels, output_cls_states)
@@ -414,14 +422,15 @@ class End2EndAspectSentimentModel(Model):
             cls_predicts = tf.cast(output_cls_states > 0, tf.int32)
             cls_acc = tf.reduce_mean(tf.cast(cls_labels == cls_predicts, tf.float32))
             total_loss = self.alpha * ner_loss + self.beta * cls_loss
-            return [ner_loss, cls_loss, total_loss], [ner_acc, cls_acc]
+            return [ner_loss, cls_loss, total_loss], [ner_acc, cls_acc], text_states
         else:
             decoded_sequence = tf.reshape(decoded_sequence, (batch_size, num_as_pairs, seq_len))
             output_logits = tf.reshape(output_logits, (batch_size, num_as_pairs, seq_len, -1))
             result = {
                 "decoded_sequence": decoded_sequence,
                 "output_logits": output_logits,
-                "output_cls_states": output_cls_states
+                "output_cls_states": output_cls_states,
+                "text_states": text_states
             }
             if output_attentions:
                 result["sim_matrix"] = sim_matrix
@@ -431,7 +440,8 @@ class End2EndAspectSentimentModel(Model):
     def build_params(self):
         dummy_text_inputs = [tf.constant([[10, 10, 10]]), tf.constant([[0, 0, 0]]), tf.constant([[1, 1, 1]])]
         dummy_aspect_inputs = [tf.constant([[10, 10, 10]] * self.num_aspect_senti), tf.constant([[0, 0, 0]]* self.num_aspect_senti), tf.constant([[1, 1, 1]] * self.num_aspect_senti)]
-        self.call(dummy_text_inputs, dummy_aspect_inputs, phase="test")
+        text_states = tf.zeros((1, 3, self.d_model))
+        self.call(dummy_text_inputs, dummy_aspect_inputs, cache_text_states=text_states, phase="test")
         self.built = True
         # super(AspectSentimentModel, self).build(input_shape)
 
@@ -441,7 +451,7 @@ if __name__ == '__main__':
     import sys
     sys.path.append(".")
     from my_datasets import PreTrainDataset, TestTokenizer
-    from label_mappings import ASPECT_SENTENCE
+    from label_mappings import RES1516_LABEL_MAPPING
 
     init_dir = 'bert_models/bert-base-cased'
     init_model = 'bert-base-cased'
@@ -460,7 +470,7 @@ if __name__ == '__main__':
         output_types=(tf.string, tf.string, tf.int32)
     )
     loader = ds.batch(4).map(pt.wrap_map)
-    model = End2EndAspectSentimentModel(init_bert_model=init_model, sentence_b=ASPECT_SENTENCE, cache_dir=init_dir, fuse_strategy="update", tagging_schema="BIO")
+    model = End2EndAspectSentimentModel(init_bert_model=init_model, sentence_b=RES1516_LABEL_MAPPING, cache_dir=init_dir, fuse_strategy="update", tagging_schema="BIO")
     for inputs in loader:
         context = inputs[:3]
         label = inputs[3:4]

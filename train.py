@@ -93,11 +93,11 @@ aspect_signature = [tf.TensorSpec(shape=(None, None), dtype=tf.int32)] * 3
 double_signature = single_signature + aspect_signature
 
 if args.dataset == "res15" or args.dataset == "res16":
-    num_asp_senti_pairs = len(ASPECT_SENTENCE['texts']) * 3
+    num_asp_senti_pairs = len(RES1516_LABEL_MAPPING['texts']) * 3
 elif args.dataset == "laptop_acos":
-    num_asp_senti_pairs = len(ASPECT_SENTENCE_ACOS_LAPTOP['texts']) * 3
+    num_asp_senti_pairs = len(ACOS_LAPTOP_LABEL_MAPPING['texts']) * 3
 else:
-    num_asp_senti_pairs = len(ASPECT_SENTENCE_CHINESE['texts']) * 3
+    num_asp_senti_pairs = len(PHONE_CHINESE_LABEL_MAPPING['texts']) * 3
 
 end_to_end_signature = [
                            tf.TensorSpec(shape=(None, None), dtype=tf.int32),
@@ -122,6 +122,7 @@ class ABSATrainer(object):
         self.args = args
         self.logger = logger
         self.language = lang
+        self.sentence_b = config['sentence_b']
         if config is None and checkpoint is None:
             raise ValueError("config and checkpoint must not be none at the same time!")
         self.model, self.optimizer, self.metrics, datasets, self.tokenizer, self.model_checkpoint = \
@@ -162,7 +163,9 @@ class ABSATrainer(object):
         n_asp_senti = tf.shape(inputs[3])[1]
         n_asp_senti_batches = tf.constant(1) if self.aspect_senti_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_batch_size), tf.int32)
         asp_senti_batch_size = n_asp_senti if self.aspect_senti_batch_size == -1 else tf.constant(self.aspect_senti_batch_size)
+        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], 768))
         for i in tf.range(n_asp_senti_batches):
+            # tf.print("Aspect-Senti Bacht: ", i)
             start = i * asp_senti_batch_size
             end = (i + 1) * asp_senti_batch_size
             with tf.GradientTape() as tape:
@@ -182,16 +185,17 @@ class ABSATrainer(object):
                     text_inputs = inputs[:3]
                     label_inputs = [each[:, start: end] for each in inputs[3:5]]
                     aspect_senti_inputs = [each[start: end] for each in inputs[5:]]
-                    loss, acc = self.model(
+                    loss, acc, text_states = self.model(
                         text_inputs=text_inputs,
                         aspect_inputs=aspect_senti_inputs,
                         label_inputs=label_inputs,
+                        asp_senti_batch_idx=start,
                         phase="train",
-                        asp_senti_batch_idx=start
+                        cache_text_states=text_states
                     )
             gradients = tape.gradient(loss[-1], self.model.trainable_variables)
-            for i, grad in enumerate(gradients):
-                self.accumulated_gradients[i].assign_add(grad)
+            for j, grad in enumerate(gradients):
+                self.accumulated_gradients[j].assign_add(grad)
         self.optimizer.apply_gradients(zip(self.accumulated_gradients, self.model.trainable_variables))
         for var in self.accumulated_gradients:
             var.assign(tf.zeros_like(var))
@@ -257,7 +261,7 @@ class ABSATrainer(object):
         return loss_list, acc_list
 
 
-    def train_and_eval(self, epoch, train_loader, valid_loader=None, valid_freq=1, save_dir=None, do_train=True, do_test=True):
+    def train_and_eval(self, epoch, train_loader, valid_loader=None, valid_freq=1, save_dir=None, do_train=True, do_valid=True, do_test=True):
         loss_list = []
         acc_list = []
         best_f1 = 0.0
@@ -272,6 +276,7 @@ class ABSATrainer(object):
             # for idx, inputs in tqdm(enumerate(train_loader), total=n_steps, desc=f"epoch {epoch}"):
             if do_train:
                 for idx, inputs in enumerate(train_loader):
+                    # print("Batch {}".format(idx))
                     train_loss, train_acc = self.step(inputs)
                     loss_list.append([item.numpy() for item in train_loss])
                     acc_list.append([item.numpy() for item in train_acc])
@@ -311,7 +316,7 @@ class ABSATrainer(object):
                     am.reset_states()
 
             # valid
-            if valid_loader and epoch % valid_freq == 0:
+            if do_valid and valid_loader and epoch % valid_freq == 0:
                 valid_loss, valid_acc = self.evaluate(valid_loader)
                 # self.logger.info("Evaluate:")
                 valid_loss_result = [str((self.loss_metrics[i].name, valid_loss[i + 1])) for i in
@@ -324,27 +329,27 @@ class ABSATrainer(object):
                 # self.logger.info(valid_acc_str)
                 valid_log = "Epoch {} Valid: {}, {}".format(epoch, valid_loss_str, valid_acc_str)
                 self.logger.info(valid_log)
-                if do_test:
-                    t, p, l = self.test(self.test_dataset, self.args.test_batch_size)
-                    output_file_path = os.path.join(self.args.output_dir, self.args.task_name, f"epoch{epoch}_{args.dataset}.json") if self.args.output_dir else None
-                    # save test result
-                    if output_file_path is not None:
-                        save_predict(t, p, l, output_file_path)
+            if do_test:
+                t, p, l = self.test(self.test_dataset, self.args.test_batch_size)
+                output_file_path = os.path.join(self.args.output_dir, self.args.task_name, f"epoch{epoch}_{args.dataset}.json") if self.args.output_dir else None
+                # save test result
+                if output_file_path is not None:
+                    save_predict(t, p, l, output_file_path)
 
-                    precision, recall, f1 = compute_f1(p, l)
-                    self.logger.info("Epoch %d Test: Precision %.3f Recall %.3f F1 %.3f" % (epoch, precision, recall, f1))
-                    if f1 >= best_f1:
-                        best_f1 = f1
-                        best_p = precision
-                        best_r = recall
-                        best_epoch = epoch
-                        if save_dir:
-                            self.logger.info("saving best checkpoint...")
-                            if not os.path.exists(save_dir):
-                                os.mkdir(save_dir)
-                            checkpoint_manager.save(epoch)
-                            config = self.model.get_config()
-                            json.dump(config, open(os.path.join(save_dir, "model_config.json"), "w"))
+                precision, recall, f1 = compute_f1(p, l)
+                self.logger.info("Epoch %d Test: Precision %.3f Recall %.3f F1 %.3f" % (epoch, precision, recall, f1))
+                if f1 >= best_f1:
+                    best_f1 = f1
+                    best_p = precision
+                    best_r = recall
+                    best_epoch = epoch
+                    if save_dir:
+                        self.logger.info("saving best checkpoint...")
+                        if not os.path.exists(save_dir):
+                            os.mkdir(save_dir)
+                        checkpoint_manager.save(epoch)
+                        config = self.model.get_config()
+                        json.dump(config, open(os.path.join(save_dir, "model_config.json"), "w"))
                 # save
         # if save_dir:
         #     if not os.path.exists(save_dir):
@@ -359,9 +364,11 @@ class ABSATrainer(object):
     @tf.function(input_signature=[end_to_end_signature])
     def evaluate_step(self, inputs):
         n_asp_senti = tf.shape(inputs[3])[1]
-        n_asp_senti_batches = tf.constant(1) if self.aspect_senti_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_batch_size), tf.int32)
-        asp_senti_batch_size = n_asp_senti if self.aspect_senti_batch_size == -1 else tf.constant(self.aspect_senti_batch_size)
-        ta = tf.TensorArray(dtype=tf.float32)
+        n_asp_senti_batches = tf.constant(1) if self.aspect_senti_test_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_test_batch_size), tf.int32)
+        asp_senti_batch_size = n_asp_senti if self.aspect_senti_test_batch_size == -1 else tf.constant(self.aspect_senti_test_batch_size)
+        losses = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        accs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], 768))
         for i in tf.range(n_asp_senti_batches):
             start = i * asp_senti_batch_size
             end = (i + 1) * asp_senti_batch_size
@@ -380,29 +387,64 @@ class ABSATrainer(object):
                 )
             else:
                 texts_inputs = inputs[:3]
-                aspect_inputs = [each[:, start: end] for each in inputs[3:5]]
-                label_inputs = [each[start: end] for each in inputs[5:]]
-                loss, acc = self.model(
+                label_inputs = [each[:, start: end] for each in inputs[3:5]]
+                aspect_inputs = [each[start: end] for each in inputs[5:]]
+                loss, acc, text_states = self.model(
                     text_inputs=texts_inputs,
                     aspect_inputs=aspect_inputs,
                     label_inputs=label_inputs,
+                    cache_text_states=text_states,
+                    asp_senti_batch_idx=start,
                     phase="valid"
                 )
+            losses = losses.write(i, loss)
+            accs = accs.write(i, acc)
+        
+        loss = tf.reduce_mean(losses.stack(), axis=0)
+        acc = tf.reduce_mean(accs.stack(), axis=0)
+
+        
         return loss, acc
 
     @tf.function(input_signature=[end_to_end_signature[:3] + end_to_end_signature[-3:]])
     def test_step(self, inputs):
-        if self.model_type == "single_tower":
-            model_out = self.model(inputs, phase="test", output_attentions=False)
-        elif self.model_type == "double_tower":
-            texts_inputs = inputs[:-3]
-            aspect_inputs = inputs[-3:]
-            model_out = self.model(texts_inputs, aspect_inputs, phase="test", output_attentions=False)
-        else:
-            texts_inputs = inputs[:3]
-            aspect_inputs = inputs[3:]
-            model_out = self.model(texts_inputs, aspect_inputs, phase="test", output_attentions=False)
-        return model_out
+        n_asp_senti = tf.shape(inputs[3])[0]
+        n_asp_senti_batches = tf.constant(1) if self.aspect_senti_test_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_test_batch_size), tf.int32)
+        asp_senti_batch_size = n_asp_senti if self.aspect_senti_test_batch_size == -1 else tf.constant(self.aspect_senti_test_batch_size)
+        all_decoded_sequence = tf.TensorArray(dtype=tf.int32, size=n_asp_senti_batches, infer_shape=False)
+        all_output_logits = tf.TensorArray(dtype=tf.float32, size=n_asp_senti_batches, infer_shape=False)
+        all_output_cls_states = tf.TensorArray(dtype=tf.float32, size=n_asp_senti_batches, infer_shape=False)
+        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], 768))
+        for i in tf.range(n_asp_senti_batches):
+            start = i * asp_senti_batch_size
+            end = (i + 1) * asp_senti_batch_size
+            if self.model_type == "single_tower":
+                model_out = self.model(inputs, phase="test", output_attentions=False)
+            elif self.model_type == "double_tower":
+                texts_inputs = inputs[:-3]
+                aspect_inputs = inputs[-3:]
+                model_out = self.model(texts_inputs, aspect_inputs, phase="test", output_attentions=False)
+            else:
+                texts_inputs = inputs[:3]
+                aspect_inputs = [each[start: end] for each in inputs[3:]]
+                model_out = self.model(
+                    texts_inputs, 
+                    aspect_inputs,
+                    cache_text_states=text_states,  
+                    phase="test", 
+                    asp_senti_batch_idx=start,
+                    output_attentions=False
+                )
+            all_decoded_sequence = all_decoded_sequence.write(i, tf.transpose(model_out['decoded_sequence'], [1, 0, 2]))
+            all_output_logits = all_output_logits.write(i, tf.transpose(model_out['output_logits'], [1, 0, 2, 3]))
+            all_output_cls_states = all_output_cls_states.write(i, tf.transpose(model_out['output_cls_states'], [1, 0]))
+            text_states = model_out['text_states']
+        result = {
+            "decoded_sequence": tf.transpose(all_decoded_sequence.concat(), [1, 0, 2]),
+            "output_logits": tf.transpose(all_output_logits.concat(), [1, 0, 2, 3]),
+            "output_cls_states": tf.transpose(all_output_cls_states.concat(), [1, 0]),
+        }
+        return result
 
     def evaluate(self, validation_loader):
         loss_list = []
@@ -462,7 +504,7 @@ class ABSATrainer(object):
             #     tokenized_texts.append(tokenized_text)
 
             tokenized_texts = self.tokenizer(text, padding='longest', return_offsets_mapping=True)
-            batch_res = Result(self.tokenizer).get_result(model_out, tokenized_texts, text, language=self.language,
+            batch_res = Result(self.tokenizer).get_result(model_out, tokenized_texts, text, label_mappings=self.sentence_b,
                                                           result_type=self.model_type, tagging_schema=self.args.schema)
             batch_res = [set(res) for res in batch_res]
             parse_result.extend(batch_res)
@@ -578,11 +620,11 @@ if __name__ == '__main__':
         sentence_b = SENTENCE_B['cased']
     elif language == "en":
         if args.dataset == "res16" or args.dataset == "res15":
-            sentence_b = ASPECT_SENTENCE
+            sentence_b = RES1516_LABEL_MAPPING
         elif args.dataset == "laptop_acos":
-            sentence_b = ASPECT_SENTENCE_ACOS_LAPTOP      
+            sentence_b = ACOS_LAPTOP_LABEL_MAPPING      
     else:
-        sentence_b = ASPECT_SENTENCE_CHINESE
+        sentence_b = PHONE_CHINESE_LABEL_MAPPING
 
     # settings
     if language == "en":
@@ -705,6 +747,7 @@ if __name__ == '__main__':
             valid_freq=args.valid_freq,
             save_dir=save_dir,
             do_train=args.do_train,
+            do_valid=args.do_valid,
             do_test=args.do_test
         )
 

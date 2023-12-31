@@ -6,7 +6,7 @@ import pandas as pd
 from xml.etree import ElementTree
 from utils.data_utils import convert_batch_label_to_batch_tokenized_label, \
     convert_batch_label_to_batch_tokenized_label_end_to_end, convert_batch_label_to_batch_tokenized_label_end_to_end_BIO
-from label_mappings import SENTENCE_B, ASPECT_SENTENCE, ASPECT_SENTENCE_CHINESE, ASPECT_SENTENCE_ACOS_LAPTOP
+from label_mappings import RES1516_LABEL_MAPPING, ACOS_LAPTOP_LABEL_MAPPING
 from itertools import chain
 
 
@@ -166,7 +166,7 @@ class BaseSemEvalDataSet(object):
             return_offsets_mapping=True
         )
         aspect_texts = self.tokenizer(
-            ASPECT_SENTENCE['texts'],
+            RES1516_LABEL_MAPPING['texts'],
             padding='longest',
             add_special_tokens=True,
             return_token_type_ids=True,
@@ -253,7 +253,6 @@ class BaseSemEvalDataSet(object):
                 offsets_mapping=offsets_mapping,
                 triplets=triplet,
                 aspect_sentiment_mapping=self.sentence_b,
-                language=self.language,
                 tokenized_label=self.is_label_after_tokenized,
                 origin_text=origin_texts[i]
             )
@@ -725,14 +724,15 @@ class PreTrainDataset(object):
 
 if __name__ == '__main__':
     from transformers import AutoTokenizer
-    file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
+    # file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
+    file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
+    # file_path = ['data/semeval2015/ABSA-15_Restaurants_Train_Final.xml', 'data/semeval2015/ABSA15_Restaurants_Test.xml']
     tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', cache_dir='bert_models/bert-base-uncased')
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    # dataset = EnglishDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
     # tokenizer = None
     for fp in file_path:
-        dataset = ACOSDataset(fp, tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
-        
+        # dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
+        dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
         ds = tf.data.Dataset.from_generator(
             dataset.generate_string_sample,
             output_types=(tf.string, tf.string)

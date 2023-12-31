@@ -32,7 +32,7 @@ if __name__ == '__main__':
         mask_sb=mask_sb,
         lang=lang
     )
-    test_tokenizer = TestTokenizer(trainer.tokenizer, ASPECT_SENTENCE_CHINESE, mask_sb, model_type)
+    test_tokenizer = TestTokenizer(trainer.tokenizer, PHONE_CHINESE_LABEL_MAPPING, mask_sb, model_type)
 
     test_data = [
         "屏幕质量不错，很抗摔；电池续航很好，可以待机两天；相机不是很给力，拍出来有点模糊"

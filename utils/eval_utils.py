@@ -18,19 +18,21 @@ class Result(object):
         self.result = []
         self.tokenizer = tokenizer
 
-    def get_result(self, model_output, tokenized_texts, origin_texts, language, tagging_schema="BIOES", result_type="end_to_end"):
+    def get_result(self, model_output, tokenized_texts, origin_texts, label_mappings, tagging_schema="BIOES", result_type="end_to_end"):
         if result_type == "end_to_end":
-            return self.get_result_end_to_end(model_output, tokenized_texts, origin_texts, language, tagging_schema=tagging_schema)
+            return self.get_result_end_to_end(model_output, tokenized_texts, origin_texts, label_mappings, tagging_schema=tagging_schema)
         else:
-            return self.get_result_pipeline(model_output, tokenized_texts, origin_texts, language)
+            return self.get_result_pipeline(model_output, tokenized_texts, origin_texts, label_mappings)
 
-    def get_result_end_to_end(self, model_output, tokenized_texts, origin_texts, language, tagging_schema="BIOES"):
-        if language == "en":
-            label_category_mapping = LABEL_CATEGORY_MAPPING
-            label_sentiment_mapping = LABEL_SENTIMENT_MAPPING
-        else:
-            label_category_mapping = LABEL_CATEGORY_MAPPING_CHINESE
-            label_sentiment_mapping = LABEL_SENTIMENT_MAPPING_CHINESE
+    def get_result_end_to_end(self, model_output, tokenized_texts, origin_texts, label_mappings, tagging_schema="BIOES"):
+        # if language == "en":
+        #     label_category_mapping = LABEL_CATEGORY_MAPPING
+        #     label_sentiment_mapping = LABEL_SENTIMENT_MAPPING
+        # else:
+        #     label_category_mapping = LABEL_CATEGORY_MAPPING_CHINESE
+        #     label_sentiment_mapping = LABEL_SENTIMENT_MAPPING_CHINESE
+        label_category_mapping = {v: k for k, v in label_mappings['category2index'].items()}
+        label_sentiment_mapping = {v: k for v, k in enumerate(label_mappings['sentiments'])}
         # (batch_decoded_sequence, _), batch_cls_logits = model_output
         batch_decoded_sequence = model_output['decoded_sequence']
         batch_cls_logits = model_output['output_cls_states']

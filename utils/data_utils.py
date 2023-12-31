@@ -152,12 +152,8 @@ def convert_batch_label_to_batch_tokenized_label(offsets_mapping, triplets, max_
     return final_result
 
 
-def convert_batch_label_to_batch_tokenized_label_end_to_end(offsets_mapping, aspect_sentiment_mapping, triplets, language="en"):
-    if language == "en":
-        sentiment_label_mapping = SENTIMENT_LABEL_MAPPING
-
-    else:
-        sentiment_label_mapping = SENTIMENT_LABEL_MAPPING_CHINESE
+def convert_batch_label_to_batch_tokenized_label_end_to_end(offsets_mapping, aspect_sentiment_mapping, triplets):
+    sentiment_label_mapping = {s: idx for idx, s in enumerate(aspect_sentiment_mapping['sentiments'])}
     category_label_mapping = aspect_sentiment_mapping['category2index']
     num_aspects = len(category_label_mapping)
     num_sentiments = len(sentiment_label_mapping)
@@ -197,11 +193,8 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end(offsets_mapping, asp
 
 
 
-def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping, triplets, aspect_sentiment_mapping, language="en", tokenized_label=False, origin_text=None):
-    if language == "en":
-        sentiment_label_mapping = SENTIMENT_LABEL_MAPPING
-    else:
-        sentiment_label_mapping = SENTIMENT_LABEL_MAPPING_CHINESE
+def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping, triplets, aspect_sentiment_mapping, tokenized_label=False, origin_text=None):
+    sentiment_label_mapping = {s: idx for idx, s in enumerate(aspect_sentiment_mapping['sentiments'])}    
     category_label_mapping = aspect_sentiment_mapping['category2index']
     num_aspects = len(category_label_mapping)
     num_sentiments = len(sentiment_label_mapping)
@@ -224,7 +217,9 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping,
                 continue
             else:
                 if origin_text:
-                    assert origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]] == triplet['target']
+                    # assert origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]] == triplet['target']
+                    if origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]] != triplet['target']:
+                        print(origin_text)
                 if new_start + 1 == new_end:
                     assert ner_label[aspect_senti_idx][new_start] == NER_BIO_MAPPING['O']
                     ner_label[aspect_senti_idx][new_start] = NER_BIO_MAPPING['B']

@@ -82,21 +82,9 @@ SENTENCE_B = {
 
 }
 
-# "texts": [
-#     "ambience general",
-#     "drinks price",
-#     "drinks quality",
-#     "drinks style options",
-#     "food prices",
-#     "food quality",
-#     "food style options",
-#     "location general",
-#     "restaurant general",
-#     "restaurant miscellaneous",
-#     "restaurant prices",
-#     "service general"
-# ],
-ASPECT_SENTENCE = {
+ACOS_LAPTOP_LABEL_MAPPING = json.load(open('./acos_laptop_mapping.json'))
+
+RES1516_LABEL_MAPPING = {
     "texts": [
         "general of ambience",
         "price of drinks",
@@ -111,23 +99,28 @@ ASPECT_SENTENCE = {
         "prices of restaurant",
         "general of service"
     ],
-
     "sentiments": [
         "negative",
         "neutral",
         "positive"
-
-    ]
+    ],
+    "category2index": {
+        'AMBIENCE#GENERAL': 0,
+        'DRINKS#PRICES': 1,
+        'DRINKS#QUALITY': 2,
+        'DRINKS#STYLE_OPTIONS': 3,
+        'FOOD#PRICES': 4,
+        'FOOD#QUALITY': 5,
+        'FOOD#STYLE_OPTIONS': 6,
+        'LOCATION#GENERAL': 7,
+        'RESTAURANT#GENERAL': 8,
+        'RESTAURANT#MISCELLANEOUS': 9,
+        'RESTAURANT#PRICES': 10,
+        'SERVICE#GENERAL': 11
+    }
 }
 
-ASPECT_SENTENCE_ACOS_LAPTOP = json.load(open('./acos_laptop_mapping.json'))
-
-NUM_CATEGORIES = 12
-
-
-# CHINESE
-
-ASPECT_SENTENCE_CHINESE = {
+PHONE_CHINESE_LABEL_MAPPING = {
     "texts": [
         "显示：屏幕、显示",
         "电源：电池、电源、充电、续航、待机",
@@ -145,32 +138,27 @@ ASPECT_SENTENCE_CHINESE = {
         "负面",
         "中性",
         "正面"
-    ]
+    ],
+    "category2index": {
+        '显示': 0,
+        '电源': 1,
+        '系统性能': 2,
+        '硬件设备': 3,
+        '软件应用': 4,
+        '键盘输入': 5,
+        '移动通信': 6,
+        '多媒体': 7,
+        '服务支持': 8,
+        '价格': 9,
+        '综合': 10        
+    }  
 }
 
-CATEGORY_LABEL_MAPPING_CHINESE = {
-    '显示': 0,
-    '电源': 1,
-    '系统性能': 2,
-    '硬件设备': 3,
-    '软件应用': 4,
-    '键盘输入': 5,
-    '移动通信': 6,
-    '多媒体': 7,
-    '服务支持': 8,
-    '价格': 9,
-    '综合': 10
-}
+NUM_CATEGORIES = 12
 
-SENTIMENT_LABEL_MAPPING_CHINESE = {
-    '负面': 0,
-    '中性': 1,
-    '正面': 2
-}
 
-LABEL_CATEGORY_MAPPING_CHINESE = {v: k for k, v in CATEGORY_LABEL_MAPPING_CHINESE.items()}
+# CHINESE
 
-LABEL_SENTIMENT_MAPPING_CHINESE = {v: k for k, v in SENTIMENT_LABEL_MAPPING_CHINESE.items()}
 
 
 
