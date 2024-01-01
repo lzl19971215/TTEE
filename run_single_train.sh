@@ -3,7 +3,7 @@ export TF_CPP_MIN_LOG_LEVEL=2
 
 SAVE_DIR=${2:- ""}
 DATASET="laptop_acos"
-TASK_NAME="ttee_${DATASET}_30epoch_256d_1aug_2e-5lr_5000decaystep_0.91decayrate_0.2dropout_1loss_BIO"
+TASK_NAME="ttee_${DATASET}_50epoch_128d_1aug_2e-5lr_5000decaystep_0.91decayrate_0.2dropout_1loss_BIO_ce"
 OUTPUT_DIR="./output"
 echo ${TASK_NAME}
 echo ${SAVE_DIR}
@@ -38,4 +38,6 @@ python train.py \
     --drop_null_data \
     --extra_attention \
     --data_aug=1 \
-    --loss_ratio=1
+    --loss_ratio=1 \
+    --detect_loss=ce \
+    --tau=1

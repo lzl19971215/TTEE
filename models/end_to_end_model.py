@@ -175,12 +175,15 @@ class End2EndAspectSentimentModel(Model):
             fuse_strategy='concat',
             pooling='cls',
             tagging_schema="BIOES",
+            detect_loss="ce",
             extra_attention=True,
             hot_attention=False,
+            do_logit_adjust=False,
             dropout=0.1,
             loss_ratio=1.0,
-            train_batch_size=16
-
+            train_batch_size=16,
+            detect_label_prior=1,
+            tau=1
     ):
         super(End2EndAspectSentimentModel, self).__init__()
         self.dropout = dropout
@@ -209,7 +212,7 @@ class End2EndAspectSentimentModel(Model):
         layers = []
         if subblock_hidden_size > 0:
             layers.extend([keras.layers.Dense(subblock_hidden_size, activation='relu'), keras.layers.Dropout(dropout)])
-        layers.append(keras.layers.Dense(1))
+        layers.append(keras.layers.Dense(2))
         self.contain_dense = keras.Sequential(layers)
         # self.contain_dense = keras.Sequential([
         #     keras.layers.Dense(subblock_hidden_size, activation='relu'),
@@ -217,7 +220,14 @@ class End2EndAspectSentimentModel(Model):
         #     keras.layers.Dense(1)
         # ])
         self.te_loss = self.te_block.compute_crf_loss
-        self.contain_loss = keras.losses.BinaryCrossentropy(from_logits=True)
+        # 
+        assert detect_loss in ['ce', 'pwm', 'focal']
+        if detect_loss == 'ce':
+            self.detect_loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        elif detect_loss == 'focal':
+            self.detect_loss = self.focal_loss
+        else:
+            self.detect_loss = self.pair_wise_margin_loss
         self.config = {
             "init_bert_model": init_bert_model,
             "sentence_b": sentence_b,
@@ -232,7 +242,11 @@ class End2EndAspectSentimentModel(Model):
             "hot_attention": hot_attention,
             "dropout": dropout,
             "loss_ratio": loss_ratio,
-            "train_batch_size": train_batch_size
+            "train_batch_size": train_batch_size,
+            "detect_loss": detect_loss,
+            "do_logit_adjust": do_logit_adjust,
+            "detect_label_prior": detect_label_prior,
+            "tau": tau
         }
         self.fuse_strategy = fuse_strategy
         self.pooling = pooling
@@ -244,6 +258,11 @@ class End2EndAspectSentimentModel(Model):
         self.updated = tf.Variable(initial_value=False, dtype=tf.bool, trainable=False)
         self.alpha = loss_ratio if loss_ratio > 1 else 1
         self.beta = 1 if loss_ratio > 1 else 1 / loss_ratio
+        self.do_logit_adjust = do_logit_adjust
+        self.tau = tau
+        self.log_prior = tf.cast(tf.math.log(detect_label_prior), tf.float32) if self.do_logit_adjust or detect_loss == 'pwm' else -1
+        print(self.log_prior)
+        # self.prior = 0.0034261559638023666
 
     @classmethod
     def from_config(cls, config):
@@ -393,21 +412,23 @@ class End2EndAspectSentimentModel(Model):
         else:
             pool_states = tf.reduce_mean(output_states, axis=1)
         output_cls_states = self.contain_dense(pool_states)
-        output_cls_states = tf.reshape(output_cls_states, (batch_size, -1))  # (batch_size, num_as_pairs)
+        output_cls_states = tf.reshape(output_cls_states, (batch_size, -1, 2))  # (batch_size, num_as_pairs, 2)
+        cls_probs = tf.nn.softmax(output_cls_states, -1)
+
 
         if phase == "train":
             ner_labels, cls_labels = label_inputs
             ner_loss, ner_acc = self.te_loss(decoded_sequence, output_logits, ner_labels, seq_length)
-            cls_loss = self.contain_loss(cls_labels, output_cls_states)
+            cls_loss = self.detect_loss(cls_labels, output_cls_states)
 
-            cls_predicts = tf.cast(output_cls_states > 0, tf.int32)
+            cls_predicts = tf.cast(cls_probs[:, :, 1] > 0.5, tf.int32)
             cls_acc = tf.reduce_mean(tf.cast(cls_labels == cls_predicts, tf.float32))
             total_loss = self.alpha * ner_loss + self.beta * cls_loss
             return [ner_loss, cls_loss, total_loss], [ner_acc, cls_acc], text_states
         elif phase == "pretrain":
             cls_labels = label_inputs[0]
-            cls_loss = self.contain_loss(cls_labels, output_cls_states)
-            cls_predicts = tf.cast(output_cls_states > 0, tf.int32)
+            cls_loss = self.detect_loss(cls_labels, output_cls_states)
+            cls_predicts = tf.cast(cls_probs[:, :, 1] > 0.5, tf.int32)
             cls_acc = tf.reduce_mean(tf.cast(cls_labels == cls_predicts, tf.float32))
             result = {
                 "cls_loss": cls_loss,
@@ -417,19 +438,25 @@ class End2EndAspectSentimentModel(Model):
         elif phase == "valid":
             ner_labels, cls_labels = label_inputs
             ner_loss, ner_acc = self.te_loss(decoded_sequence, output_logits, ner_labels, seq_length)
-            cls_loss = self.contain_loss(cls_labels, output_cls_states)
+            # apply post-hoc logit adjustment
+            if self.do_logit_adjust:
+                output_cls_states = self.logit_adjustment(output_cls_states)
+            cls_loss = self.detect_loss(cls_labels, output_cls_states)
 
-            cls_predicts = tf.cast(output_cls_states > 0, tf.int32)
+            cls_predicts = tf.cast(cls_probs[:, :, 1] > 0.5, tf.int32)
             cls_acc = tf.reduce_mean(tf.cast(cls_labels == cls_predicts, tf.float32))
             total_loss = self.alpha * ner_loss + self.beta * cls_loss
             return [ner_loss, cls_loss, total_loss], [ner_acc, cls_acc], text_states
         else:
             decoded_sequence = tf.reshape(decoded_sequence, (batch_size, num_as_pairs, seq_len))
             output_logits = tf.reshape(output_logits, (batch_size, num_as_pairs, seq_len, -1))
+            # apply post-hoc logit adjustment
+            if self.do_logit_adjust:
+                output_cls_states = self.logit_adjustment(output_cls_states)            
             result = {
                 "decoded_sequence": decoded_sequence,
                 "output_logits": output_logits,
-                "output_cls_states": output_cls_states,
+                "output_cls_states": cls_probs[:, :, 1],
                 "text_states": text_states
             }
             if output_attentions:
@@ -444,6 +471,24 @@ class End2EndAspectSentimentModel(Model):
         self.call(dummy_text_inputs, dummy_aspect_inputs, cache_text_states=text_states, phase="test")
         self.built = True
         # super(AspectSentimentModel, self).build(input_shape)
+    
+    def logit_adjustment(self, logits):
+        # logits (batch_size, num_as_pairs)
+        return logits - self.tau * self.log_prior
+    
+    def pair_wise_margin_loss(self, labels, logits):
+        shift_logits = logits + self.tau * self.log_prior
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels, shift_logits)
+        return tf.reduce_mean(loss)
+
+    def focal_loss(self, labels, logits):
+        gamma = 2
+        probs = tf.nn.softmax(logits, axis=-1)
+        labels = tf.one_hot(labels, depth=2)
+        loss = -tf.reduce_sum(labels * ((1 - probs) ** gamma) * tf.math.log(probs), axis=-1)
+        return tf.reduce_mean(loss)
+
+
 
 
 if __name__ == '__main__':

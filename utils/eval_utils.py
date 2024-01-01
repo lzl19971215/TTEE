@@ -39,7 +39,7 @@ class Result(object):
         batch_output_prob = softmax(model_output['output_logits'].numpy(), axis=-1)
         batch_decoded_sequence = batch_decoded_sequence.numpy()
         batch_cls_logits = batch_cls_logits.numpy()
-        batch_cls_predict = (batch_cls_logits > 0).astype(np.int32)
+        batch_cls_predict = (batch_cls_logits > 0.5).astype(np.int32)
 
         num_aspects = len(label_category_mapping)
         num_sentiments = len(label_sentiment_mapping)

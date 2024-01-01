@@ -59,6 +59,9 @@ def arg_parse():
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
     parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
     parser.add_argument("--cased", help="模型是否区分大小写", default=0, type=int)
+    parser.add_argument("--detect_loss", help="ce, pwm", default="ce", type=str)
+    parser.add_argument("--logit_adjust", help="是否在非训练时进行logit 调整（解决样本不平衡）", default=False, action="store_true")
+    parser.add_argument("--tau", help="logit adjust 超参数", default=1.0, type=float)          
     parser.add_argument("--do_train", help="是否进行训练", default=False, action="store_true")
     parser.add_argument("--do_valid", help="是否进行验证", default=False, action="store_true")
     parser.add_argument("--do_test", help="是否进行测试", default=False, action="store_true")
@@ -164,6 +167,8 @@ class ABSATrainer(object):
         n_asp_senti_batches = tf.constant(1) if self.aspect_senti_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_batch_size), tf.int32)
         asp_senti_batch_size = n_asp_senti if self.aspect_senti_batch_size == -1 else tf.constant(self.aspect_senti_batch_size)
         text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], 768))
+        losses = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        accs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         for i in tf.range(n_asp_senti_batches):
             # tf.print("Aspect-Senti Bacht: ", i)
             start = i * asp_senti_batch_size
@@ -181,11 +186,11 @@ class ABSATrainer(object):
                         text_inputs=texts_inputs,
                         aspect_inputs=aspect_inputs
                     )
-                elif self.model_type == "end_to_end":
+                else:
                     text_inputs = inputs[:3]
                     label_inputs = [each[:, start: end] for each in inputs[3:5]]
                     aspect_senti_inputs = [each[start: end] for each in inputs[5:]]
-                    loss, acc, text_states = self.model(
+                    loss, acc, _ = self.model(
                         text_inputs=text_inputs,
                         aspect_inputs=aspect_senti_inputs,
                         label_inputs=label_inputs,
@@ -194,11 +199,21 @@ class ABSATrainer(object):
                         cache_text_states=text_states
                     )
             gradients = tape.gradient(loss[-1], self.model.trainable_variables)
+            # tf.print("Loss: ", loss)
+            # tf.print("Acc: ", acc)
+            losses = losses.write(i, loss)
+            accs = accs.write(i, acc)
+            # accumulate grades
             for j, grad in enumerate(gradients):
                 self.accumulated_gradients[j].assign_add(grad)
         self.optimizer.apply_gradients(zip(self.accumulated_gradients, self.model.trainable_variables))
+
+        # clear grads
         for var in self.accumulated_gradients:
             var.assign(tf.zeros_like(var))
+
+        loss = tf.reduce_mean(losses.stack(), axis=0)
+        acc = tf.reduce_mean(accs.stack(), axis=0)
         self.metrics.update_state(loss[-1])
         for idx, loss_metric in enumerate(self.loss_metrics):
             loss_metric.update_state(loss[idx])
@@ -510,6 +525,21 @@ class ABSATrainer(object):
             parse_result.extend(batch_res)
         return contexts, parse_result, true_result
 
+def calculate_dataset_label_prior(datasets):
+    all_cls_labels = []
+    for dataset in datasets:
+        if dataset is not None:
+            ds = tf.data.Dataset.from_generator(
+                dataset.generate_string_sample,
+                output_types=(tf.string, tf.string)
+            )
+            for a, b in ds.batch(32):
+                cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
+                all_cls_labels.append(cls_labels)
+    all_cls_labels = np.concatenate(all_cls_labels, axis=0)
+    p = all_cls_labels.sum() / all_cls_labels.size  
+    return np.array([1-p, p])
+
 
 def prepare_modules(
         config,
@@ -586,6 +616,12 @@ def prepare_modules(
         )
     else:
         test_dataset = None
+    
+    # logit-adjustment
+    if args.logit_adjust or args.detect_loss == "pwm":
+        prior = calculate_dataset_label_prior([train_dataset, test_dataset])
+        config["detect_label_prior"] = prior
+        logger.info("Dataset CLS label prior: {}".format(prior))
     if model_type == "single_tower":
         model_class = AspectSentimentModel
     elif model_type == "double_tower":
@@ -651,7 +687,10 @@ if __name__ == '__main__':
         "hot_attention": args.hot_attention,
         "dropout": args.dropout_rate,
         "loss_ratio": args.loss_ratio,
-        "train_batch_size": args.train_batch_size
+        "train_batch_size": args.train_batch_size,
+        "detect_loss": args.detect_loss,
+        "do_logit_adjust": args.logit_adjust,
+        "tau": args.tau
     }
     model_type = args.model_type
     mask_sb = args.mask_sb
