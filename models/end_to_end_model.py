@@ -320,7 +320,7 @@ class End2EndAspectSentimentModel(Model):
                 training=True
             )
             asp_senti_cls_states = asp_senti_output.pooler_output
-            self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(asp_senti_cls_states)[0])))
+            # self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(asp_senti_cls_states)[0])))
         elif phase == "pretrain":
             asp_senti_output = self.bert(
                 input_ids=aspect_inputs[0],
@@ -337,7 +337,7 @@ class End2EndAspectSentimentModel(Model):
                 training=False
             )
             asp_senti_cls_states = asp_senti_output.pooler_output            
-        elif phase == "test" and not self.updated:
+        elif (phase == "test" or phase == "valid") and not self.updated:
             asp_senti_output = self.bert(
                 input_ids=aspect_inputs[0],
                 token_type_ids=aspect_inputs[1],
@@ -346,7 +346,8 @@ class End2EndAspectSentimentModel(Model):
             )
             asp_senti_cls_states = asp_senti_output.pooler_output
             self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(aspect_inputs[0])[0])))
-            self.updated.assign(True)
+            if asp_senti_batch_idx + tf.shape(aspect_inputs[0])[0] == self.num_aspect_senti:
+                self.updated.assign(True)
         else:
             asp_senti_cls_states = tf.nn.embedding_lookup(self.asp_senti_cache, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(aspect_inputs[0])[0]))
 

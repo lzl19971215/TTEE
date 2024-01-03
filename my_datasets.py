@@ -226,25 +226,35 @@ class BaseSemEvalDataSet(object):
         result[-5] = tf.where(result[0] == 0, -1, result[-5])
         return result + aspect_result
 
-    def negative_sampling(self, labels, n_sample=32):
-        num_rows, _ = labels.shape
-        sampled_indices = []
+    # def negative_sampling(self, labels, n_sample=32):
+    #     num_rows, _ = labels.shape
+    #     sampled_indices = []
         
-        for i in range(num_rows):
-            positive_indices = np.where(labels[i] == 1)[0]
-            negative_indices = np.where(labels[i] == 0)[0]
-            assert len(positive_indices) < n_sample
+    #     for i in range(num_rows):
+    #         positive_indices = np.where(labels[i] == 1)[0]
+    #         negative_indices = np.where(labels[i] == 0)[0]
+    #         assert len(positive_indices) < n_sample
 
-            chosen_indices = positive_indices
-            num_negatives_needed = n_sample - len(chosen_indices)
-            chosen_negative_indices = np.random.choice(negative_indices, size=num_negatives_needed, replace=False)
-            chosen_indices = np.concatenate((chosen_indices, chosen_negative_indices))
+    #         chosen_indices = positive_indices
+    #         num_negatives_needed = n_sample - len(chosen_indices)
+    #         chosen_negative_indices = np.random.choice(negative_indices, size=num_negatives_needed, replace=False)
+    #         chosen_indices = np.concatenate((chosen_indices, chosen_negative_indices))
             
-            # 打乱选择的索引，使正负样本混合
-            sampled_indices.append(chosen_indices)
+    #         # 打乱选择的索引，使正负样本混合
+    #         sampled_indices.append(chosen_indices)
         
-        batch_index = np.repeat(np.arange(num_rows)[:, None], n_sample, axis=1)
-        return batch_index, np.array(sampled_indices)
+    #     batch_index = np.repeat(np.arange(num_rows)[:, None], n_sample, axis=1)
+    #     return batch_index, np.array(sampled_indices)
+    def negative_sampling(self, labels, n_sample=36):
+        _, n_cols = labels.shape
+        positive_indices = np.unique(np.nonzero(labels)[1])
+        negative_indices = np.array([i for i in range(n_cols) if i not in positive_indices])
+        num_negatives_needed = n_sample - len(positive_indices) 
+        if num_negatives_needed <= 0:
+            return positive_indices
+        chosen_negative_indices = np.random.choice(negative_indices, size=num_negatives_needed, replace=False)
+        chosen_indices = np.concatenate((positive_indices, chosen_negative_indices))
+        return chosen_indices    
 
     def map_batch_string_to_tensor_end_to_end(self, text_tensor, triplet_tensor):
         batch_size = text_tensor.shape[0]
@@ -293,9 +303,9 @@ class BaseSemEvalDataSet(object):
         aspect_senti_attention_mask = np.array(aspect_senti_inputs['attention_mask'])
 
         if self.neg_sample != -1:
-            batch_idx, asp_senti_idx = self.negative_sampling(all_cls_labels, n_sample=self.neg_sample)
-            all_ner_labels = all_ner_labels[batch_idx, asp_senti_idx]
-            all_cls_labels = all_cls_labels[batch_idx, asp_senti_idx]
+            asp_senti_idx = self.negative_sampling(all_cls_labels, n_sample=self.neg_sample)
+            all_ner_labels = all_ner_labels[:, asp_senti_idx]
+            all_cls_labels = all_cls_labels[:, asp_senti_idx]
             aspect_senti_input_ids = aspect_senti_input_ids[asp_senti_idx]
             aspect_senti_token_type_ids = aspect_senti_token_type_ids[asp_senti_idx]
             aspect_senti_attention_mask = aspect_senti_attention_mask[asp_senti_idx]
@@ -769,14 +779,14 @@ if __name__ == '__main__':
     # tokenizer = None
     for fp in file_path:
         all_cls_labels = []
-        dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO", neg_sample=32)
+        dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO", neg_sample=36)
         # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
         ds = tf.data.Dataset.from_generator(
             dataset.generate_string_sample,
             output_types=(tf.string, tf.string)
         )
-        # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
-        for a, b in ds.batch(32):
+        bd = ds.batch(batch_size=8).map(dataset.wrap_map)
+        for a, b in ds.batch(16):
             cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
             all_cls_labels.append(cls_labels)
         all_cls_labels = np.concatenate(all_cls_labels, axis=0)

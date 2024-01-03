@@ -40,11 +40,13 @@ def arg_parse():
     parser.add_argument("--data_aug", help="数据增强策略", default=None, type=int)
     parser.add_argument("--dataset", help="数据集", default="res16", type=str)
     parser.add_argument("--train_batch_size", help="训练batch size", default=16, type=int)
+    parser.add_argument("--neg_sample", help="采样方面-情感数量", default=-1, type=int)
     parser.add_argument("--aspect_senti_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
     parser.add_argument("--aspect_senti_test_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
     parser.add_argument("--test_batch_size", help="测试batch size", default=32, type=int)
     parser.add_argument("--epochs", help="训练epoch数量", default=30, type=int)
     parser.add_argument("--valid_freq", help="验证的频率", default=1, type=int)
+    parser.add_argument("--test_freq", help="测试的频率", default=1, type=int)
     parser.add_argument("--lr", help="学习率", default=1e-5, type=float)
     parser.add_argument("--decay_steps", default=1000, type=int)
     parser.add_argument("--decay_rate", default=0.9, type=float)
@@ -106,8 +108,8 @@ end_to_end_signature = [
                            tf.TensorSpec(shape=(None, None), dtype=tf.int32),
                            tf.TensorSpec(shape=(None, None), dtype=tf.int32),
                            tf.TensorSpec(shape=(None, None, None), dtype=tf.int32),
-                           tf.TensorSpec(shape=(None, num_asp_senti_pairs, None), dtype=tf.int32),
-                           tf.TensorSpec(shape=(None, num_asp_senti_pairs), dtype=tf.int32)
+                           tf.TensorSpec(shape=(None, None, None), dtype=tf.int32),
+                           tf.TensorSpec(shape=(None, None), dtype=tf.int32)
                        ] + aspect_signature
 
 pretrain_signature = [
@@ -276,7 +278,7 @@ class ABSATrainer(object):
         return loss_list, acc_list
 
 
-    def train_and_eval(self, epoch, train_loader, valid_loader=None, valid_freq=1, save_dir=None, do_train=True, do_valid=True, do_test=True):
+    def train_and_eval(self, epoch, train_loader, valid_loader=None, valid_freq=1, test_freq=1, save_dir=None, do_train=True, do_valid=True, do_test=True):
         loss_list = []
         acc_list = []
         best_f1 = 0.0
@@ -344,7 +346,7 @@ class ABSATrainer(object):
                 # self.logger.info(valid_acc_str)
                 valid_log = "Epoch {} Valid: {}, {}".format(epoch, valid_loss_str, valid_acc_str)
                 self.logger.info(valid_log)
-            if do_test:
+            if do_test and epoch % test_freq == 0:
                 t, p, l = self.test(self.test_dataset, self.args.test_batch_size)
                 output_file_path = os.path.join(self.args.output_dir, self.args.task_name, f"epoch{epoch}_{args.dataset}.json") if self.args.output_dir else None
                 # save test result
@@ -462,6 +464,7 @@ class ABSATrainer(object):
         return result
 
     def evaluate(self, validation_loader):
+        self.model.updated.assign(False)
         loss_list = []
         acc_list = []
         for idx, inputs in enumerate(validation_loader):
@@ -526,7 +529,8 @@ class ABSATrainer(object):
         return contexts, parse_result, true_result
 
 def calculate_dataset_label_prior(datasets):
-    all_cls_labels = []
+    f_p = 0
+    f_all = 0
     for dataset in datasets:
         if dataset is not None:
             ds = tf.data.Dataset.from_generator(
@@ -535,9 +539,9 @@ def calculate_dataset_label_prior(datasets):
             )
             for a, b in ds.batch(32):
                 cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
-                all_cls_labels.append(cls_labels)
-    all_cls_labels = np.concatenate(all_cls_labels, axis=0)
-    p = all_cls_labels.sum() / all_cls_labels.size  
+                f_p += cls_labels.sum()
+                f_all += cls_labels.size
+    p = f_p / f_all
     return np.array([1-p, p])
 
 
@@ -601,7 +605,8 @@ def prepare_modules(
             mask_sb=mask_sb,
             tagging_schema=config["tagging_schema"],
             model_type=model_type,
-            drop_null=drop_null_data
+            drop_null=drop_null_data,
+            neg_sample=args.neg_sample
         )
 
     if test_data_path:
@@ -619,7 +624,7 @@ def prepare_modules(
     
     # logit-adjustment
     if args.logit_adjust or args.detect_loss == "pwm":
-        prior = calculate_dataset_label_prior([train_dataset, test_dataset])
+        prior = calculate_dataset_label_prior([train_dataset])
         config["detect_label_prior"] = prior
         logger.info("Dataset CLS label prior: {}".format(prior))
     if model_type == "single_tower":
@@ -784,6 +789,7 @@ if __name__ == '__main__':
             train_loader,
             test_loader,
             valid_freq=args.valid_freq,
+            test_freq=args.test_freq,
             save_dir=save_dir,
             do_train=args.do_train,
             do_valid=args.do_valid,

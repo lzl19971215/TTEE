@@ -3,11 +3,14 @@ export TF_CPP_MIN_LOG_LEVEL=2
 
 SAVE_DIR=${2:- ""}
 DATASET="laptop_acos"
-TASK_NAME="ttee_${DATASET}_50epoch_128d_1aug_2e-5lr_5000decaystep_0.91decayrate_0.2dropout_1loss_BIO_ce"
+EPOCH=100
 OUTPUT_DIR="./output"
+DETECT_LOSS="ce";
+
+TASK_NAME="ttee_${DATASET}_${EPOCH}epoch_128d_1aug_2e-5lr_5000decaystep_0.91decayrate_0.2dropout_1loss_BIO_${DETECT_LOSS}_no_asp_batch_2batch"
+
 echo ${TASK_NAME}
 echo ${SAVE_DIR}
-
 python train.py \
     --do_train \
     --do_valid \
@@ -19,12 +22,13 @@ python train.py \
     --task_name="${TASK_NAME}" \
     --output_dir="${OUTPUT_DIR}" \
     --save_dir="${SAVE_DIR}" \
-    --epochs=50 \
+    --epochs=${EPOCH} \
     --dropout_rate=0.2 \
     --valid_freq=1 \
-    --train_batch_size=16 \
-    --test_batch_size=32 \
-    --aspect_senti_batch_size=72 \
+    --test_freq=3 \
+    --train_batch_size=2 \
+    --test_batch_size=16 \
+    --aspect_senti_batch_size=-1 \
     --aspect_senti_test_batch_size=144 \
     --lr=2e-5 \
     --decay_steps=5000 \
@@ -39,5 +43,6 @@ python train.py \
     --extra_attention \
     --data_aug=1 \
     --loss_ratio=1 \
-    --detect_loss=ce \
-    --tau=1
+    --detect_loss="${DETECT_LOSS}" \
+    --tau=1 \
+    --neg_sample=-1

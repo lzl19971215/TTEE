@@ -3,7 +3,7 @@ export TF_CPP_MIN_LOG_LEVEL=2
 
 
 # 假设我们有一个由空格分隔的列表，每个子列表由冒号分隔
-list="1:128:72"
+list="1:128:72 1:"
 
 # 使用空格作为外层列表的分隔符，遍历列表
 for sublist in $list; 
