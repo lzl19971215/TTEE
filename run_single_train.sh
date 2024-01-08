@@ -7,7 +7,7 @@ EPOCH=100
 OUTPUT_DIR="./output"
 DETECT_LOSS="ce";
 
-TASK_NAME="ttee_${DATASET}_${EPOCH}epoch_128d_1aug_2e-5lr_5000decaystep_0.91decayrate_0.2dropout_1loss_BIO_${DETECT_LOSS}_no_asp_batch_2batch"
+TASK_NAME="ttee_${DATASET}_${EPOCH}epoch_128d_1aug_2e-5lr_5000decaystep_0.91decayrate_0.2dropout_1loss_BIO_${DETECT_LOSS}_no_asp_batch_1batch_12neg"
 
 echo ${TASK_NAME}
 echo ${SAVE_DIR}
@@ -25,11 +25,11 @@ python train.py \
     --epochs=${EPOCH} \
     --dropout_rate=0.2 \
     --valid_freq=1 \
-    --test_freq=3 \
-    --train_batch_size=2 \
+    --test_freq=1 \
+    --train_batch_size=1 \
     --test_batch_size=16 \
     --aspect_senti_batch_size=-1 \
-    --aspect_senti_test_batch_size=144 \
+    --aspect_senti_test_batch_size=-1 \
     --lr=2e-5 \
     --decay_steps=5000 \
     --decay_rate=0.9 \
@@ -45,4 +45,4 @@ python train.py \
     --loss_ratio=1 \
     --detect_loss="${DETECT_LOSS}" \
     --tau=1 \
-    --neg_sample=-1
+    --neg_sample=12

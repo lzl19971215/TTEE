@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from multiprocessing import context
 import os
+import time
 import tensorflow as tf
 import logging
 import argparse
@@ -78,6 +79,9 @@ def arg_parse():
     parser.add_argument("--pretrain_save_steps", help="预训练日志打印步数", type=int)    
     parser.add_argument("--pretrain_log_steps", help="预训练模型保存步数", type=int)
     parser.add_argument("--pretrain_data", help="预训练数据文件名称", type=str)
+
+    # for speed test
+    parser.add_argument("--speed_test", help="进行speed test", default=False, action="store_true")
     return parser.parse_args()
 
 args = arg_parse()
@@ -294,6 +298,17 @@ class ABSATrainer(object):
             if do_train:
                 for idx, inputs in enumerate(train_loader):
                     # print("Batch {}".format(idx))
+
+                    # *************for speed_test*************
+                    if args.speed_test:
+                        global train_time
+                        if idx == 1:
+                            start_time = time.time()
+                        elif idx == 21:
+                            end_time = time.time()
+                            train_time = (end_time - start_time) * n_steps / 20
+                            break
+
                     train_loss, train_acc = self.step(inputs)
                     loss_list.append([item.numpy() for item in train_loss])
                     acc_list.append([item.numpy() for item in train_acc])
@@ -467,7 +482,17 @@ class ABSATrainer(object):
         self.model.updated.assign(False)
         loss_list = []
         acc_list = []
+        n_steps = int(np.ceil(len(self.test_dataset) / self.args.test_batch_size))
+        print(n_steps)
         for idx, inputs in enumerate(validation_loader):
+            if args.speed_test:
+                global eval_time
+                if idx == 1:
+                    start_time = time.time()
+                elif idx == 11:
+                    end_time = time.time()
+                    eval_time = (end_time - start_time) * n_steps / 20
+                    break            
             loss, acc = self.evaluate_step(inputs)
             loss_list.append([item.numpy() for item in loss])
             acc_list.append([item.numpy() for item in acc])
@@ -617,7 +642,8 @@ def prepare_modules(
             mask_sb=mask_sb,
             tagging_schema=config["tagging_schema"],
             model_type=model_type,
-            drop_null=drop_null_data
+            drop_null=drop_null_data,
+            neg_sample=args.neg_sample if args.speed_test else -1
         )
     else:
         test_dataset = None
@@ -762,7 +788,7 @@ if __name__ == '__main__':
             output_types=(tf.string, tf.string)
         ).batch(batch_size=args.train_batch_size).shuffle(buffer_size=10000).map(trainer.train_dataset.wrap_map).prefetch(8)
 
-    if args.do_test:
+    if args.do_test or args.do_valid:
         test_loader = tf.data.Dataset.from_generator(
             trainer.test_dataset.generate_string_sample,
             output_types=(tf.string, tf.string)
@@ -770,6 +796,19 @@ if __name__ == '__main__':
     else:
         test_loader = None
     
+
+    if args.speed_test:
+        speed_fp = 'train_eval_time.txt'
+        if os.path.exists(speed_fp):
+            speed_file = open(speed_fp, "a")
+        else:
+            speed_file = open(speed_fp, "w")
+            speed_file.write(",".join(["method", "n_aspect", "train_time", "eval_time"]) + '\n')
+        model_name = "TTEE"
+        n_aspect = args.neg_sample // 3
+        train_time = 0
+        eval_time = 0
+
     if args.pretrain:
         train_loss, train_acc = trainer.pretrain(
             data_loader=train_loader,
@@ -795,7 +834,12 @@ if __name__ == '__main__':
             do_valid=args.do_valid,
             do_test=args.do_test
         )
+    
 
+    if args.speed_test:
+        speed_file.write(",".join([model_name, str(n_aspect), str(train_time), str(eval_time)]) + "\n")
+        speed_file.flush()
+        speed_file.close()
     # p, l = trainer.test(trainer.test_dataset, args.test_batch_size)
     # precision, recall, f1 = compute_f1(p, l)
     # logger.info("Precision %.3f Recall %.3f F1 %.3f" % (precision, recall, f1))
