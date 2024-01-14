@@ -3,6 +3,7 @@ import json
 import numpy as np
 import tensorflow as tf
 import pandas as pd
+import random
 from xml.etree import ElementTree
 from utils.data_utils import convert_batch_label_to_batch_tokenized_label, \
     convert_batch_label_to_batch_tokenized_label_end_to_end, convert_batch_label_to_batch_tokenized_label_end_to_end_BIO
@@ -12,7 +13,7 @@ from itertools import chain
 
 class BaseSemEvalDataSet(object):
 
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", tagging_schema="BIOES", drop_null=False, is_label_after_tokenized=False, neg_sample=-1):
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", tagging_schema="BIOES", drop_null=False, is_label_after_tokenized=False, neg_sample=-1, data_sample_ratio=-1):
         self.tokenizer = tokenizer
         self.sentence_b = sentence_b
         # self.tree = ElementTree.parse(file_path)
@@ -23,6 +24,8 @@ class BaseSemEvalDataSet(object):
         self.string_sentences = self.xml2list()
         if self.drop_null:
             self.string_sentences = [each for each in self.string_sentences if len(json.loads(each[1]))]
+        if data_sample_ratio != -1:
+            self.string_sentences = random.sample(self.string_sentences, int(data_sample_ratio * len(self.string_sentences)))
         self.mask_sb = mask_sb
         self.model_type = model_type
         self.is_label_after_tokenized = is_label_after_tokenized
@@ -406,8 +409,8 @@ class BaseSemEvalDataSet(object):
 
 
 class EnglishDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
-        super(EnglishDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False, neg_sample=-1, data_sample_ratio=-1):
+        super(EnglishDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null, False, neg_sample, data_sample_ratio)
         self.language = "en"
 
     def xml2list(self):
@@ -437,9 +440,9 @@ class EnglishDataset(BaseSemEvalDataSet):
         return string_result
 
 class ACOSDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False, neg_sample=-1):
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False, neg_sample=-1, data_sample_ratio=-1):
         self.Triplet = namedtuple('triplet', ['target', 'category', 'polarity', 'start', 'end'])
-        super(ACOSDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null, is_label_after_tokenized=False, neg_sample=neg_sample)
+        super(ACOSDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null, is_label_after_tokenized=False, neg_sample=neg_sample, data_sample_ratio=data_sample_ratio)
         self.language = "en"
 
     
@@ -473,7 +476,7 @@ class ACOSDataset(BaseSemEvalDataSet):
         return string_result  
 
 class ChineseDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False, neg_sample=-1):
         super(ChineseDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
         self.language = "cn"
 
@@ -771,28 +774,35 @@ class PreTrainDataset(object):
 
 if __name__ == '__main__':
     from transformers import AutoTokenizer
-    file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
-    # file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
+    from itertools import chain
+    # file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
+    file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
     # file_path = ['data/semeval2015/ABSA-15_Restaurants_Train_Final.xml', 'data/semeval2015/ABSA15_Restaurants_Test.xml']
     tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', cache_dir='bert_models/bert-base-uncased')
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     # tokenizer = None
     for fp in file_path:
+        print(fp)
         all_cls_labels = []
-        dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO", neg_sample=36)
+        # dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
+        dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO", data_sample_ratio=0.5)
+        all_tuples = list(chain(*(json.loads(each[1]) for each in list(dataset.string_sentences))))
+        n_implicit_tuples = sum([1 if each['target'] is None else 0 for each in all_tuples])
+        print(len(all_tuples), n_implicit_tuples, n_implicit_tuples / len(all_tuples))
+        
         # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
-        ds = tf.data.Dataset.from_generator(
-            dataset.generate_string_sample,
-            output_types=(tf.string, tf.string)
-        )
-        bd = ds.batch(batch_size=8).map(dataset.wrap_map)
-        for a, b in ds.batch(16):
-            cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
-            all_cls_labels.append(cls_labels)
-        all_cls_labels = np.concatenate(all_cls_labels, axis=0)
-        print(all_cls_labels.shape)
-        p = all_cls_labels.sum() / all_cls_labels.size
-        print("success to batch ", fp, p)
+        # ds = tf.data.Dataset.from_generator(
+        #     dataset.generate_string_sample,
+        #     output_types=(tf.string, tf.string)
+        # )
+        # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
+        # for a, b in ds.batch(16):
+        #     cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
+        #     all_cls_labels.append(cls_labels)
+        # all_cls_labels = np.concatenate(all_cls_labels, axis=0)
+        # print(all_cls_labels.shape)
+        # p = all_cls_labels.sum() / all_cls_labels.size
+        # print("success to batch ", fp, p)
     # input_ids = tokenizer(SENTENCE_B['text'], return_offsets_mapping=True, add_special_tokens=False)['input_ids']
     # tt = tokenizer.convert_ids_to_tokens(input_ids)
     

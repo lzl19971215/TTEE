@@ -42,6 +42,7 @@ def arg_parse():
     parser.add_argument("--dataset", help="数据集", default="res16", type=str)
     parser.add_argument("--train_batch_size", help="训练batch size", default=16, type=int)
     parser.add_argument("--neg_sample", help="采样方面-情感数量", default=-1, type=int)
+    parser.add_argument("--data_sample_ratio", help="训练样本采样比率", default=-1, type=float)
     parser.add_argument("--aspect_senti_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
     parser.add_argument("--aspect_senti_test_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
     parser.add_argument("--test_batch_size", help="测试batch size", default=32, type=int)
@@ -52,6 +53,7 @@ def arg_parse():
     parser.add_argument("--decay_steps", default=1000, type=int)
     parser.add_argument("--decay_rate", default=0.9, type=float)
     parser.add_argument("--dropout_rate", help="失活率", default=0.1, type=float)
+    parser.add_argument("--detect_dropout_rate", help="detect失活率", default=0.1, type=float)
     parser.add_argument("--block_att_head_num", help="子模块自注意力头数", default=1, type=int)
     parser.add_argument("--fuse_strategy", help="端到端的FuseNet融合策略", default="update", type=str)
     parser.add_argument("--pooling", help="池化策略:cls或者mean", default="cls", type=str)
@@ -62,7 +64,7 @@ def arg_parse():
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
     parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
     parser.add_argument("--cased", help="模型是否区分大小写", default=0, type=int)
-    parser.add_argument("--detect_loss", help="ce, pwm", default="ce", type=str)
+    parser.add_argument("--detect_loss", help="ce, focal, pwm", default="ce", type=str)
     parser.add_argument("--logit_adjust", help="是否在非训练时进行logit 调整（解决样本不平衡）", default=False, action="store_true")
     parser.add_argument("--tau", help="logit adjust 超参数", default=1.0, type=float)          
     parser.add_argument("--do_train", help="是否进行训练", default=False, action="store_true")
@@ -139,11 +141,9 @@ class ABSATrainer(object):
                 config=config,
                 args=args,
                 learning_rate=learning_rate,
-                dropout_rate=dropout_rate,
                 model_checkpoint=checkpoint,
                 train_data_path=train_data,
                 test_data_path=test_data,
-                cased=cased,
                 model_type=model_type,
                 logger=self.logger,
                 mask_sb=mask_sb,
@@ -159,7 +159,7 @@ class ABSATrainer(object):
             self.acc_metrics_names = ["Ner", "Target Aspect", "Target Sentiment"]
         else:
             self.loss_metrics_names = ["Ner", "CLS Classification"]
-            self.acc_metrics_names = ["Ner", "CLS Classification"]
+            self.acc_metrics_names = ["Ner", "CLS Classification", "CLS Pos", "CLS Neg"]
         self.loss_metrics = [tf.keras.metrics.Mean(name=name + " " + "Loss") for name in self.loss_metrics_names]
         self.acc_metrics = [tf.keras.metrics.Mean(name=name + " " + "Acc") for name in self.acc_metrics_names]
         self.Result_tuple = namedtuple("result", ["target", "category", "polarity"])
@@ -483,7 +483,6 @@ class ABSATrainer(object):
         loss_list = []
         acc_list = []
         n_steps = int(np.ceil(len(self.test_dataset) / self.args.test_batch_size))
-        print(n_steps)
         for idx, inputs in enumerate(validation_loader):
             if args.speed_test:
                 global eval_time
@@ -504,6 +503,8 @@ class ABSATrainer(object):
         sub_accs = []
         for i in range(len(self.loss_metrics_names)):
             sub_losses.append(np.mean([each[i] for each in loss_list]))
+        
+        for i in range(len(self.acc_metrics_names)):
             sub_accs.append(np.mean([each[i] for each in acc_list]))
 
         return [total_loss] + sub_losses, sub_accs
@@ -574,11 +575,9 @@ def prepare_modules(
         config,
         args,
         learning_rate=1e-5,
-        dropout_rate=0.1,
         model_checkpoint=None,
         train_data_path='data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml',
         test_data_path=None,
-        cased=True,
         model_type="single_tower",
         logger=logging.getLogger(),
         mask_sb=False,
@@ -631,7 +630,8 @@ def prepare_modules(
             tagging_schema=config["tagging_schema"],
             model_type=model_type,
             drop_null=drop_null_data,
-            neg_sample=args.neg_sample
+            neg_sample=args.neg_sample,
+            data_sample_ratio=args.data_sample_ratio
         )
 
     if test_data_path:
@@ -717,6 +717,7 @@ if __name__ == '__main__':
         "extra_attention": args.extra_attention,
         "hot_attention": args.hot_attention,
         "dropout": args.dropout_rate,
+        "detect_dropout": args.detect_dropout_rate,
         "loss_ratio": args.loss_ratio,
         "train_batch_size": args.train_batch_size,
         "detect_loss": args.detect_loss,
