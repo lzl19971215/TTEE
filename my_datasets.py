@@ -773,22 +773,29 @@ class PreTrainDataset(object):
         return result
 
 if __name__ == '__main__':
-    from transformers import AutoTokenizer
+    # from transformers import AutoTokenizer
     from itertools import chain
-    # file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
-    file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
+    file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
+    # file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
     # file_path = ['data/semeval2015/ABSA-15_Restaurants_Train_Final.xml', 'data/semeval2015/ABSA15_Restaurants_Test.xml']
-    tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', cache_dir='bert_models/bert-base-uncased')
-    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    # tokenizer = None
+    # tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', cache_dir='bert_models/bert-base-uncased')
+    # tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+    tokenizer = None
     for fp in file_path:
         print(fp)
         all_cls_labels = []
-        # dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
-        dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO", data_sample_ratio=0.5)
+        dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
+        # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
         all_tuples = list(chain(*(json.loads(each[1]) for each in list(dataset.string_sentences))))
-        n_implicit_tuples = sum([1 if each['target'] is None else 0 for each in all_tuples])
-        print(len(all_tuples), n_implicit_tuples, n_implicit_tuples / len(all_tuples))
+        all_sentences = list(dataset.string_sentences)
+        n_implicit_tuples = sum([1 if each['target'] == "NULL" else 0 for each in all_tuples])
+        n_mixed_sentences = 0
+        for sent in all_sentences:
+            sent_jsons = json.loads(sent[1])
+            a_s_pairs = set((sent_json["category"], sent_json["polarity"]) for sent_json in sent_jsons)
+            if len(a_s_pairs) > 1:
+                n_mixed_sentences += 1 
+        print(len(all_sentences), n_mixed_sentences, n_mixed_sentences / len(all_sentences), len(all_tuples), n_implicit_tuples, n_implicit_tuples / len(all_tuples))
         
         # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
         # ds = tf.data.Dataset.from_generator(
