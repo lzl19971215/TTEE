@@ -42,6 +42,7 @@ def arg_parse():
     parser.add_argument("--dataset", help="数据集", default="res16", type=str)
     parser.add_argument("--train_batch_size", help="训练batch size", default=16, type=int)
     parser.add_argument("--neg_sample", help="采样方面-情感数量", default=-1, type=int)
+    parser.add_argument("--cache_train_loader", help="是否固定采样的数据", default=False, action="store_true")
     parser.add_argument("--data_sample_ratio", help="训练样本采样比率", default=-1, type=float)
     parser.add_argument("--aspect_senti_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
     parser.add_argument("--aspect_senti_test_batch_size", help="方面情感组合的batch_size(当组合数量过多时使用,防止OOM)", default=-1, type=int)
@@ -50,7 +51,7 @@ def arg_parse():
     parser.add_argument("--valid_freq", help="验证的频率", default=1, type=int)
     parser.add_argument("--test_freq", help="测试的频率", default=1, type=int)
     parser.add_argument("--lr", help="学习率", default=1e-5, type=float)
-    parser.add_argument("--decay_steps", default=1000, type=int)
+    parser.add_argument("--decay_steps", default=-1, type=int)
     parser.add_argument("--decay_rate", default=0.9, type=float)
     parser.add_argument("--dropout_rate", help="失活率", default=0.1, type=float)
     parser.add_argument("--detect_dropout_rate", help="detect失活率", default=0.1, type=float)
@@ -61,6 +62,8 @@ def arg_parse():
     parser.add_argument("--extra_attention", help="端到端FuseNet之后是否加self Attention", default=False, action="store_true")
     parser.add_argument("--hot_attention", help="是否用bert最后一个self-attention参数初始化extra-attention", default=False, action="store_true")
     parser.add_argument("--d_block", help="子模块模型维度", default=256, type=int)
+    parser.add_argument("--block_inter_activation", help="子模块中间层activation", default="relu", type=str)
+    parser.add_argument("--block_output_activation", help="子模块输出activation", default=None, type=str)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
     parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
     parser.add_argument("--cased", help="模型是否区分大小写", default=0, type=int)
@@ -378,7 +381,7 @@ class ABSATrainer(object):
                     if save_dir:
                         self.logger.info("saving best checkpoint...")
                         if not os.path.exists(save_dir):
-                            os.mkdir(save_dir)
+                            os.makedirs(save_dir)
                         checkpoint_manager.save(epoch)
                         config = self.model.get_config()
                         json.dump(config, open(os.path.join(save_dir, "model_config.json"), "w"))
@@ -710,6 +713,8 @@ if __name__ == '__main__':
         "num_sentiment_classes": 3,
         "subblock_hidden_size": args.d_block,
         "subblock_head_num": args.block_att_head_num,
+        "block_output_activation": args.block_output_activation,
+        "block_inter_activation": args.block_inter_activation,
         "cache_dir": cache_dir,
         "fuse_strategy": args.fuse_strategy,
         "pooling": args.pooling,
@@ -719,7 +724,6 @@ if __name__ == '__main__':
         "dropout": args.dropout_rate,
         "detect_dropout": args.detect_dropout_rate,
         "loss_ratio": args.loss_ratio,
-        "train_batch_size": args.train_batch_size,
         "detect_loss": args.detect_loss,
         "do_logit_adjust": args.logit_adjust,
         "tau": args.tau
@@ -787,7 +791,11 @@ if __name__ == '__main__':
         train_loader = tf.data.Dataset.from_generator(
             trainer.train_dataset.generate_string_sample,
             output_types=(tf.string, tf.string)
-        ).batch(batch_size=args.train_batch_size).shuffle(buffer_size=10000).map(trainer.train_dataset.wrap_map).prefetch(8)
+        ).batch(batch_size=args.train_batch_size)
+        if args.cache_train_loader:
+            train_loader = train_loader.map(trainer.train_dataset.wrap_map).cache().shuffle(buffer_size=10000).prefetch(8)
+        else:
+            train_loader = train_loader.shuffle(buffer_size=10000).map(trainer.train_dataset.wrap_map).prefetch(8)
 
     if args.do_test or args.do_valid:
         test_loader = tf.data.Dataset.from_generator(

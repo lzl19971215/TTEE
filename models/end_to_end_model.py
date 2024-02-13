@@ -34,14 +34,14 @@ class IgnoreValueLoss(object):
 
 class TargetExtractionBlock(Layer):
 
-    def __init__(self, hidden_size, num_classes=5, dropout=0.3, **kwargs):
+    def __init__(self, hidden_size, num_classes=5, dropout=0.3, block_output_activation=None, block_inter_activation="relu", **kwargs):
         super(TargetExtractionBlock, self).__init__(**kwargs)
         self.hidden_size = hidden_size
         # self.linear_transform = keras.layers.Dense(hidden_size, activation='relu')
         transform_layers = []
         if hidden_size > 0:
-            transform_layers.extend([keras.layers.Dense(hidden_size, activation='relu'), keras.layers.Dropout(dropout)])
-        transform_layers.append(keras.layers.Dense(num_classes))
+            transform_layers.extend([keras.layers.Dense(hidden_size, activation=block_inter_activation), keras.layers.Dropout(dropout)])
+        transform_layers.append(keras.layers.Dense(num_classes, activation=block_output_activation))
         self.linear_transform = keras.Sequential(transform_layers)
         self.crf = BuildCRF(units=num_classes, use_kernel=False)
         self.dropout = layers.Dropout(rate=dropout)
@@ -123,12 +123,12 @@ class FuseNet(Layer):
 
         # (batch_size, num_aspects, seq_len, hidden_size)
         aspect_text_tokens = text_tokens * sim_matrix
+        aspect_tokens = tf.tile(aspect_tokens, [batch_size, 1, seq_len, 1])
         if training:
             aspect_text_tokens = tf.nn.dropout(aspect_text_tokens, rate=self.dropout)
 
         if self.fuse_strategy == 'concat':
             # output = tf.concat([text_tokens, aspect_text_tokens], axis=-1)
-            aspect_tokens = tf.tile(aspect_tokens, [batch_size, 1, seq_len, 1])
             output = tf.concat([aspect_text_tokens, aspect_tokens], axis=-1)
         elif self.fuse_strategy == 'add':
             output = text_tokens + aspect_text_tokens
@@ -172,6 +172,8 @@ class End2EndAspectSentimentModel(Model):
             sentence_b,
             num_sentiment_classes=3,
             subblock_hidden_size=256,
+            block_output_activation=None,
+            block_inter_activation="relu",
             subblock_head_num=1,
             cache_dir=None,
             fuse_strategy='concat',
@@ -184,9 +186,9 @@ class End2EndAspectSentimentModel(Model):
             dropout=0.1,
             detect_dropout=0.1,
             loss_ratio=1.0,
-            train_batch_size=16,
             detect_label_prior=1,
-            tau=1
+            tau=1,
+            **kwargs
     ):
         super(End2EndAspectSentimentModel, self).__init__()
         self.dropout = dropout
@@ -194,7 +196,7 @@ class End2EndAspectSentimentModel(Model):
         self.tokenizer = AutoTokenizer.from_pretrained(init_bert_model, cache_dir=cache_dir)
         self.fuse_net = FuseNet(self.bert.config.hidden_size, fuse_strategy, dropout=dropout)
         n_te_classes = 5 if tagging_schema == "BIOES" else 3
-        self.te_block = TargetExtractionBlock(hidden_size=subblock_hidden_size, num_classes=n_te_classes, dropout=dropout)
+        self.te_block = TargetExtractionBlock(hidden_size=subblock_hidden_size, num_classes=n_te_classes, dropout=dropout, block_output_activation=block_output_activation, block_inter_activation=block_inter_activation)
         if fuse_strategy == 'concat':
             attention_hidden_size = self.bert.config.hidden_size * 2
         else:
@@ -214,8 +216,8 @@ class End2EndAspectSentimentModel(Model):
         
         layers = []
         if subblock_hidden_size > 0:
-            layers.extend([keras.layers.Dense(subblock_hidden_size, activation='relu'), keras.layers.Dropout(detect_dropout)])
-        layers.append(keras.layers.Dense(2))
+            layers.extend([keras.layers.Dense(subblock_hidden_size, activation=block_inter_activation), keras.layers.Dropout(detect_dropout)])
+        layers.append(keras.layers.Dense(2, activation=block_output_activation))
         self.contain_dense = keras.Sequential(layers)
         # self.contain_dense = keras.Sequential([
         #     keras.layers.Dense(subblock_hidden_size, activation='relu'),
@@ -237,6 +239,8 @@ class End2EndAspectSentimentModel(Model):
             "num_sentiment_classes": num_sentiment_classes,
             "subblock_hidden_size": subblock_hidden_size,
             "subblock_head_num": subblock_head_num,
+            "block_output_activation": block_output_activation,
+            "block_inter_activation": block_inter_activation,
             "cache_dir": cache_dir,
             "fuse_strategy": fuse_strategy,
             "pooling": pooling,
@@ -246,7 +250,6 @@ class End2EndAspectSentimentModel(Model):
             "dropout": dropout,
             "detect_dropout": detect_dropout,
             "loss_ratio": loss_ratio,
-            "train_batch_size": train_batch_size,
             "detect_loss": detect_loss,
             "do_logit_adjust": do_logit_adjust,
             "detect_label_prior": detect_label_prior,
@@ -254,11 +257,10 @@ class End2EndAspectSentimentModel(Model):
         }
         self.fuse_strategy = fuse_strategy
         self.pooling = pooling
-        self.train_batch_size = train_batch_size
         self.num_aspect_senti = len(sentence_b["texts"]) * len(sentence_b["sentiments"])
         self.d_model =  768 if 'base' in init_bert_model else 1024
         self.asp_senti_cache = tf.Variable(tf.zeros((self.num_aspect_senti, self.d_model)), trainable=False)
-        self.context_cache = tf.Variable(tf.zeros((train_batch_size, 512, self.d_model)), trainable=False)
+        # self.context_cache = tf.Variable(tf.zeros((train_batch_size, 512, self.d_model)), trainable=False)
         self.updated = tf.Variable(initial_value=False, dtype=tf.bool, trainable=False)
         # self.alpha = loss_ratio if loss_ratio > 1 else 1
         # self.beta = 1 if loss_ratio > 1 else 1 / loss_ratio

@@ -457,7 +457,7 @@ class ACOSDataset(BaseSemEvalDataSet):
                 for trip in trips:
                     items = trip.split()
                     start, end = items[0].split(',')
-                    target = None if start == end == '0' else text[int(start): int(end)]
+                    target = "NULL" if start == end == '0' else text[int(start): int(end)]
 
                     category = items[1]
                     polarity = items[2]
@@ -798,11 +798,11 @@ if __name__ == '__main__':
         print(len(all_sentences), n_mixed_sentences, n_mixed_sentences / len(all_sentences), len(all_tuples), n_implicit_tuples, n_implicit_tuples / len(all_tuples))
         
         # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
-        # ds = tf.data.Dataset.from_generator(
-        #     dataset.generate_string_sample,
-        #     output_types=(tf.string, tf.string)
-        # )
-        # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
+        ds = tf.data.Dataset.from_generator(
+            dataset.generate_string_sample,
+            output_types=(tf.string, tf.string)
+        )
+        bd = ds.batch(batch_size=8).map(dataset.wrap_map)
         # for a, b in ds.batch(16):
         #     cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
         #     all_cls_labels.append(cls_labels)

@@ -170,7 +170,12 @@ if __name__ == "__main__":
             get_best_epoch_result_for_each_task(df.loc["TAS", "epoch"], f"{output_dir}/{exp}")
             print(df)
             print()
-            res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
+            if "res15" in exp:
+                res15_results.append((exp,df)) 
+            elif "res16" in exp:
+                res16_results.append((exp,df))
+            elif "laptop" in exp:
+                laptop_results.append((exp,df))
             continue
         try:
             evaluator = MultiTaskEvaluatior(TASK_CONFIG, f"{output_dir}/{exp}")
