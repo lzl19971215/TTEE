@@ -204,7 +204,7 @@ class End2EndAspectSentimentModel(Model):
 
         self.extra_attention = extra_attention
         if self.extra_attention:
-            attention_config = BertConfig(hidden_size=attention_hidden_size, num_attention_heads=12 if 'base' in init_bert_model else 16)
+            attention_config = BertConfig(hidden_size=attention_hidden_size, num_attention_heads=self.bert.config.num_attention_heads)
             self.self_attention = TFBertAttention(attention_config)
             if hot_attention:
                 # build layer with dummy input

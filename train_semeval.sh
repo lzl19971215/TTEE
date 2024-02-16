@@ -2,6 +2,7 @@ export CUDA_VISIBLE_DEVICES=${1:-0}
 export TF_CPP_MIN_LOG_LEVEL=2
 
 SAVE_DIR="checkpoint"
+BERT_SIZE="large"
 DATASET="res16"
 EPOCH=100
 OUTPUT_DIR="./output"
@@ -10,7 +11,7 @@ FUSE_STRATEGY="gate"
 OUT_ACT="none"
 IN_ACT="relu"
 
-TASK_NAME="ttee_${DATASET}_${EPOCH}epoch_512d_2aug_8e-6lr_5000decaystep_0.90decayrate_0.2dropout_0.2detect_dropout_1loss_BIO_${DETECT_LOSS}_no_asp_batch_${FUSE_STRATEGY}_${OUT_ACT}outact_${IN_ACT}inact_continue_4"
+TASK_NAME="ttee_${BERT_SIZE}_${DATASET}_${EPOCH}epoch_512d_2aug_2e-5lr_5000decaystep_0.90decayrate_0.2dropout_0.2detect_dropout_1loss_BIO_${DETECT_LOSS}_no_asp_batch_${FUSE_STRATEGY}_${OUT_ACT}outact_${IN_ACT}inact"
 echo ${TASK_NAME}
 echo ${SAVE_DIR}
 python train.py \
@@ -29,11 +30,11 @@ python train.py \
     --detect_dropout_rate=0.2 \
     --valid_freq=1 \
     --test_freq=1 \
-    --train_batch_size=16 \
+    --train_batch_size=8 \
     --test_batch_size=64 \
     --aspect_senti_batch_size=-1 \
     --aspect_senti_test_batch_size=-1 \
-    --lr=2e-6 \
+    --lr=2e-5 \
     --decay_steps=5000 \
     --decay_rate=0.90 \
     --d_block=512 \
@@ -42,14 +43,13 @@ python train.py \
     --schema="BIO" \
     --block_att_head_num=1 \
     --language=en \
-    --bert_size=base \
+    --bert_size="${BERT_SIZE}" \
     --drop_null_data \
     --extra_attention \
     --data_aug=2 \
     --loss_ratio=1 \
     --detect_loss="${DETECT_LOSS}" \
-    --tau=1 \
-    --init_model_dir="checkpoint/ttee_res16_100epoch_512d_1aug_5e-6lr_5000decaystep_0.90decayrate_0.2dropout_0.2detect_dropout_1loss_BIO_ce_no_asp_batch_gate_noneoutact_reluinact_continue_3"
+    --tau=1
 
 # for IN_ACT in relu gelu
 # do

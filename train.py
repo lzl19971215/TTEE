@@ -169,13 +169,14 @@ class ABSATrainer(object):
         self.aspect_senti_batch_size = args.aspect_senti_batch_size
         self.aspect_senti_test_batch_size = args.aspect_senti_test_batch_size
         self.accumulated_gradients = [tf.Variable(tf.zeros_like(var), trainable=False) for var in self.model.trainable_variables]
+        self.d_model = self.model.bert.config.hidden_size
 
     @tf.function(input_signature=[end_to_end_signature])
     def step(self, inputs):
         n_asp_senti = tf.shape(inputs[3])[1]
         n_asp_senti_batches = tf.constant(1) if self.aspect_senti_batch_size == -1 else tf.cast(tf.math.ceil(n_asp_senti / self.aspect_senti_batch_size), tf.int32)
         asp_senti_batch_size = n_asp_senti if self.aspect_senti_batch_size == -1 else tf.constant(self.aspect_senti_batch_size)
-        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], 768))
+        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], self.d_model))
         losses = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         accs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         for i in tf.range(n_asp_senti_batches):
@@ -403,7 +404,7 @@ class ABSATrainer(object):
         asp_senti_batch_size = n_asp_senti if self.aspect_senti_test_batch_size == -1 else tf.constant(self.aspect_senti_test_batch_size)
         losses = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         accs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
-        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], 768))
+        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], self.d_model))
         for i in tf.range(n_asp_senti_batches):
             start = i * asp_senti_batch_size
             end = (i + 1) * asp_senti_batch_size
@@ -449,7 +450,7 @@ class ABSATrainer(object):
         all_decoded_sequence = tf.TensorArray(dtype=tf.int32, size=n_asp_senti_batches, infer_shape=False)
         all_output_logits = tf.TensorArray(dtype=tf.float32, size=n_asp_senti_batches, infer_shape=False)
         all_output_cls_states = tf.TensorArray(dtype=tf.float32, size=n_asp_senti_batches, infer_shape=False)
-        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], 768))
+        text_states = tf.zeros((tf.shape(inputs[0])[0], tf.shape(inputs[0])[1], self.d_model))
         for i in tf.range(n_asp_senti_batches):
             start = i * asp_senti_batch_size
             end = (i + 1) * asp_senti_batch_size
