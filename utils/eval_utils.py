@@ -69,7 +69,7 @@ class Result(object):
                     target_tag = decoded_sequence[asp_senti_idx][start: end]
                     target_prob = output_prob[asp_senti_idx][list(range(start, end)), target_tag]
                     avg_target_prob = np.mean(target_prob)
-                    target_text = origin_text[offset_mapping[start][0]: offset_mapping[end - 1][1]]
+                    target_text = origin_text[offset_mapping[start][0]: offset_mapping[end - 1][1]].strip()
                     result.add((Triplet(target_text, target_aspect, target_sentiment, avg_target_prob.item())))
             self.result.append(list(result))
         return self.result

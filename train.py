@@ -35,6 +35,7 @@ def arg_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument("--task_name", help="训练任务名称", required=True, type=str)
     parser.add_argument("--init_model_dir", help="热启动模型路径", default="", type=str)
+    parser.add_argument("--pretrain_model", help="预训练模型", default="bert-base-uncased", type=str)
     parser.add_argument("--load_config", help="是否需要加载checkpoint的config", default=False, action="store_true")
     parser.add_argument("--save_dir", help="模型保存路径", default="", type=str)
     parser.add_argument("--output_dir", help="日志及测试结果保存路径", default="", type=str)
@@ -66,7 +67,7 @@ def arg_parse():
     parser.add_argument("--block_output_activation", help="子模块输出activation", default=None, type=str)
     parser.add_argument("--model_type", help="模型种类（单塔、双塔、端到端）", default="end_to_end", type=str)
     parser.add_argument("--mask_sb", help="单塔模型attention mask, 不看sentence b", default=False, action="store_true")
-    parser.add_argument("--cased", help="模型是否区分大小写", default=0, type=int)
+    # parser.add_argument("--cased", help="模型是否区分大小写", default=0, type=int)
     parser.add_argument("--detect_loss", help="ce, focal, pwm", default="ce", type=str)
     parser.add_argument("--logit_adjust", help="是否在非训练时进行logit 调整（解决样本不平衡）", default=False, action="store_true")
     parser.add_argument("--tau", help="logit adjust 超参数", default=1.0, type=float)          
@@ -74,7 +75,7 @@ def arg_parse():
     parser.add_argument("--do_valid", help="是否进行验证", default=False, action="store_true")
     parser.add_argument("--do_test", help="是否进行测试", default=False, action="store_true")
     parser.add_argument("--language", help="语言", default="en", type=str)
-    parser.add_argument("--bert_size", help="预训练模型大小", default="base", type=str)
+    # parser.add_argument("--bert_size", help="预训练模型大小", default="base", type=str)
     parser.add_argument("--drop_null_data", help="是否在训练与测试集中去掉不包含三元组的句子", default=False, action="store_true")
     parser.add_argument("--loss_ratio", help="ner loss与detection loss的比例", default=1, type=float)
 
@@ -116,7 +117,7 @@ else:
 end_to_end_signature = [
                            tf.TensorSpec(shape=(None, None), dtype=tf.int32),
                            tf.TensorSpec(shape=(None, None), dtype=tf.int32),
-                           tf.TensorSpec(shape=(None, None, None), dtype=tf.int32),
+                           tf.TensorSpec(shape=(None, None), dtype=tf.int32),
                            tf.TensorSpec(shape=(None, None, None), dtype=tf.int32),
                            tf.TensorSpec(shape=(None, None), dtype=tf.int32)
                        ] + aspect_signature
@@ -131,8 +132,8 @@ pretrain_signature = [
 
 class ABSATrainer(object):
 
-    def __init__(self, args, train_data, test_data, logger, checkpoint=None, cased=True, model_type="single_tower",
-                 mask_sb=False, config=None, learning_rate=1e-5, dropout_rate=0.1, lang="en", drop_null_data=False):
+    def __init__(self, args, train_data, test_data, logger, checkpoint=None, model_type="single_tower",
+                 mask_sb=False, config=None, learning_rate=1e-5, lang="en", drop_null_data=False):
         self.args = args
         self.logger = logger
         self.language = lang
@@ -312,7 +313,7 @@ class ABSATrainer(object):
                             end_time = time.time()
                             train_time = (end_time - start_time) * n_steps / 20
                             break
-
+                    inputs = list(inputs)
                     train_loss, train_acc = self.step(inputs)
                     loss_list.append([item.numpy() for item in train_loss])
                     acc_list.append([item.numpy() for item in train_acc])
@@ -698,16 +699,18 @@ if __name__ == '__main__':
         sentence_b = PHONE_CHINESE_LABEL_MAPPING
 
     # settings
-    if language == "en":
-        if args.cased:
-            init_bert_model = f'bert-{args.bert_size}-cased'
-            cache_dir = f'bert_models/bert-{args.bert_size}-cased'
-        else:
-            init_bert_model = f'bert-{args.bert_size}-uncased'
-            cache_dir = f'bert_models/bert-{args.bert_size}-uncased'
-    else:
-        init_bert_model = f'bert-{args.bert_size}-chinese'
-        cache_dir = f'bert_models/bert-{args.bert_size}-chinese'
+    init_bert_model = args.pretrain_model
+    cache_dir = f'bert_models/{os.path.basename(init_bert_model)}'
+    # if language == "en":
+    #     if args.cased:
+    #         init_bert_model = f'bert-{args.bert_size}-cased'
+    #         cache_dir = f'bert_models/bert-{args.bert_size}-cased'
+    #     else:
+    #         init_bert_model = f'bert-{args.bert_size}-uncased'
+    #         cache_dir = f'bert_models/bert-{args.bert_size}-uncased'
+    # else:
+    #     init_bert_model = f'bert-{args.bert_size}-chinese'
+    #     cache_dir = f'bert_models/bert-{args.bert_size}-chinese'
     config = {
         "init_bert_model": init_bert_model,
         "sentence_b": sentence_b,
@@ -771,7 +774,6 @@ if __name__ == '__main__':
         test_data=test_data_path,
         logger=logger,
         checkpoint=checkpoint_path,
-        cased=args.cased,
         model_type=model_type,
         mask_sb=mask_sb,
         config=config,

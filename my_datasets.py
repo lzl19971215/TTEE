@@ -1,5 +1,6 @@
 from collections import namedtuple
 import json
+import re
 import numpy as np
 import tensorflow as tf
 import pandas as pd
@@ -15,6 +16,8 @@ class BaseSemEvalDataSet(object):
 
     def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", tagging_schema="BIOES", drop_null=False, is_label_after_tokenized=False, neg_sample=-1, data_sample_ratio=-1):
         self.tokenizer = tokenizer
+        tokenizer_type = type(tokenizer).__name__
+        self.is_strict = re.search('deberta', tokenizer_type.lower()) is None
         self.sentence_b = sentence_b
         # self.tree = ElementTree.parse(file_path)
         # self.root = self.tree.getroot()
@@ -288,7 +291,8 @@ class BaseSemEvalDataSet(object):
                 triplets=triplet,
                 aspect_sentiment_mapping=self.sentence_b,
                 tokenized_label=self.is_label_after_tokenized,
-                origin_text=origin_texts[i]
+                origin_text=origin_texts[i],
+                strict=self.is_strict
             )
 
             # one_position_ids = [i for i in range(max_len)]
@@ -298,7 +302,6 @@ class BaseSemEvalDataSet(object):
             cls_labels.append([cls_label])
 
         attention_mask = np.array(tokenized_texts['attention_mask'])
-        attention_mask = np.repeat(attention_mask[:, np.newaxis, :], attention_mask.shape[1], axis=1)
         all_ner_labels = np.concatenate(ner_labels, axis=0)
         all_cls_labels = np.concatenate(cls_labels, axis=0)
         aspect_senti_input_ids = np.array(aspect_senti_inputs['input_ids'])
@@ -773,39 +776,42 @@ class PreTrainDataset(object):
         return result
 
 if __name__ == '__main__':
-    # from transformers import AutoTokenizer
+    import os
+    from transformers import AutoTokenizer
     from itertools import chain
-    file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
-    # file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
+    # file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
+    file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
     # file_path = ['data/semeval2015/ABSA-15_Restaurants_Train_Final.xml', 'data/semeval2015/ABSA15_Restaurants_Test.xml']
-    # tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', cache_dir='bert_models/bert-base-uncased')
-    # tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    tokenizer = None
+    model_name = 'microsoft/deberta-base'
+    # model_name = 'bert-base-uncased'
+    tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=f'bert_models/{os.path.basename(model_name)}')
+    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+    # tokenizer = None
     for fp in file_path:
         print(fp)
         all_cls_labels = []
-        dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
+        # dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
         # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
-        all_tuples = list(chain(*(json.loads(each[1]) for each in list(dataset.string_sentences))))
-        all_sentences = list(dataset.string_sentences)
-        n_implicit_tuples = sum([1 if each['target'] == "NULL" else 0 for each in all_tuples])
-        n_mixed_sentences = 0
-        for sent in all_sentences:
-            sent_jsons = json.loads(sent[1])
-            a_s_pairs = set((sent_json["category"], sent_json["polarity"]) for sent_json in sent_jsons)
-            if len(a_s_pairs) > 1:
-                n_mixed_sentences += 1 
-        print(len(all_sentences), n_mixed_sentences, n_mixed_sentences / len(all_sentences), len(all_tuples), n_implicit_tuples, n_implicit_tuples / len(all_tuples))
+        # all_tuples = list(chain(*(json.loads(each[1]) for each in list(dataset.string_sentences))))
+        # all_sentences = list(dataset.string_sentences)
+        # n_implicit_tuples = sum([1 if each['target'] == "NULL" else 0 for each in all_tuples])
+        # n_mixed_sentences = 0
+        # for sent in all_sentences:
+        #     sent_jsons = json.loads(sent[1])
+        #     a_s_pairs = set((sent_json["category"], sent_json["polarity"]) for sent_json in sent_jsons)
+        #     if len(a_s_pairs) > 1:
+        #         n_mixed_sentences += 1 
+        # print(len(all_sentences), n_mixed_sentences, n_mixed_sentences / len(all_sentences), len(all_tuples), n_implicit_tuples, n_implicit_tuples / len(all_tuples))
         
-        # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
+        dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
         ds = tf.data.Dataset.from_generator(
             dataset.generate_string_sample,
             output_types=(tf.string, tf.string)
         )
-        bd = ds.batch(batch_size=8).map(dataset.wrap_map)
-        # for a, b in ds.batch(16):
-        #     cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
-        #     all_cls_labels.append(cls_labels)
+        # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
+        for a, b in ds.batch(16):
+            cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
+            all_cls_labels.append(cls_labels)
         # all_cls_labels = np.concatenate(all_cls_labels, axis=0)
         # print(all_cls_labels.shape)
         # p = all_cls_labels.sum() / all_cls_labels.size

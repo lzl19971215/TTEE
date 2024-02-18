@@ -1,10 +1,7 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow import keras
-from tensorflow.keras.models import Model
 from transformers import TFAutoModel, AutoTokenizer
-from tensorflow.keras.layers import Layer
-from tensorflow.keras import layers
 from tensorflow_addons.text import crf_log_likelihood
 from transformers.models.bert.modeling_tf_bert import TFBertAttention
 from transformers import BertConfig
@@ -32,7 +29,7 @@ class IgnoreValueLoss(object):
         return ave_loss, ave_acc
 
 
-class TargetExtractionBlock(Layer):
+class TargetExtractionBlock(keras.layers.Layer):
 
     def __init__(self, hidden_size, num_classes=5, dropout=0.3, block_output_activation=None, block_inter_activation="relu", **kwargs):
         super(TargetExtractionBlock, self).__init__(**kwargs)
@@ -44,7 +41,7 @@ class TargetExtractionBlock(Layer):
         transform_layers.append(keras.layers.Dense(num_classes, activation=block_output_activation))
         self.linear_transform = keras.Sequential(transform_layers)
         self.crf = BuildCRF(units=num_classes, use_kernel=False)
-        self.dropout = layers.Dropout(rate=dropout)
+        self.dropout = keras.layers.Dropout(rate=dropout)
         self.loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True, reduction='none')
 
     def call(self, hidden_states, mask=None, training=False, **kwargs):
@@ -82,7 +79,7 @@ class TargetExtractionBlock(Layer):
     #     super(TargetExtractionBlock, self).build(input_shape)
 
 
-class FuseNet(Layer):
+class FuseNet(keras.layers.Layer):
 
     def __init__(self, d_model, fuse_strategy='concat', dropout=0.1):
         super(FuseNet, self).__init__()
@@ -164,7 +161,7 @@ class FuseNet(Layer):
         return sim_matrix
 
 
-class End2EndAspectSentimentModel(Model):
+class End2EndAspectSentimentModel(keras.models.Model):
 
     def __init__(
             self,
@@ -316,7 +313,7 @@ class End2EndAspectSentimentModel(Model):
                 training=(phase == "train")
             )
             # tf.print("re calculate")
-            text_states, _ = bert_output.last_hidden_state, bert_output.pooler_output
+            text_states = bert_output.last_hidden_state
         else:
             # tf.print("use cache")
             text_states = cache_text_states
@@ -329,7 +326,10 @@ class End2EndAspectSentimentModel(Model):
                 attention_mask=aspect_inputs[2],
                 training=True
             )
-            asp_senti_cls_states = asp_senti_output.pooler_output
+            if hasattr(asp_senti_output, "pooler_output"):
+                asp_senti_cls_states = asp_senti_output.pooler_output
+            else:
+                asp_senti_cls_states = asp_senti_output.last_hidden_state[:, 0, :]
             # self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(asp_senti_cls_states)[0])))
         elif phase == "pretrain":
             asp_senti_output = self.bert(
@@ -338,7 +338,10 @@ class End2EndAspectSentimentModel(Model):
                 attention_mask=aspect_inputs[2],
                 training=True
             )
-            asp_senti_cls_states = asp_senti_output.pooler_output
+            if hasattr(asp_senti_output, "pooler_output"):
+                asp_senti_cls_states = asp_senti_output.pooler_output
+            else:
+                asp_senti_cls_states = asp_senti_output.last_hidden_state[:, 0, :]
         elif phase == "dynamic_aspect_test":
             asp_senti_output = self.bert(
                 input_ids=aspect_inputs[0],
@@ -346,7 +349,10 @@ class End2EndAspectSentimentModel(Model):
                 attention_mask=aspect_inputs[2],
                 training=False
             )
-            asp_senti_cls_states = asp_senti_output.pooler_output            
+            if hasattr(asp_senti_output, "pooler_output"):
+                asp_senti_cls_states = asp_senti_output.pooler_output
+            else:
+                asp_senti_cls_states = asp_senti_output.last_hidden_state[:, 0, :]            
         elif (phase == "test" or phase == "valid") and not self.updated:
             asp_senti_output = self.bert(
                 input_ids=aspect_inputs[0],
@@ -354,7 +360,10 @@ class End2EndAspectSentimentModel(Model):
                 attention_mask=aspect_inputs[2],
                 training=False
             )
-            asp_senti_cls_states = asp_senti_output.pooler_output
+            if hasattr(asp_senti_output, "pooler_output"):
+                asp_senti_cls_states = asp_senti_output.pooler_output
+            else:
+                asp_senti_cls_states = asp_senti_output.last_hidden_state[:, 0, :]
             self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(aspect_inputs[0])[0])))
             if asp_senti_batch_idx + tf.shape(aspect_inputs[0])[0] == self.num_aspect_senti:
                 self.updated.assign(True)
@@ -402,7 +411,11 @@ class End2EndAspectSentimentModel(Model):
                 input_tensor=fused_states,
                 attention_mask=self_attention_mask,
                 head_mask=None,
-                output_attentions=output_attentions
+                encoder_hidden_states=None,
+                encoder_attention_mask=None,
+                past_key_value=None,
+                output_attentions=output_attentions,
+                training=training
             )[0]
         else:
             output_states = fused_states

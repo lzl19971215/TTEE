@@ -60,7 +60,7 @@ def infer_tokenized_label_old(text, tokenized_text, start, end):
         return new_start, new_end
 
 
-def infer_tokenized_label(start, end, offsets_mapping):
+def infer_tokenized_label(start, end, offsets_mapping, strict=True):
     if start == end == 0:
         return 0, 1
 
@@ -68,11 +68,15 @@ def infer_tokenized_label(start, end, offsets_mapping):
     new_end = -1
     for idx, offset in enumerate(offsets_mapping[1: -1], 1):
         if new_start == -1:
-            if offset[0] == start:
+            if strict and offset[0] == start:
+                new_start = idx
+            elif (not strict) and offset[0] <= start < offset[1]:
                 new_start = idx
 
         if new_start != -1 and new_end == -1:
-            if offset[1] == end:
+            if strict and offset[1] == end:
+                new_end = idx + 1
+            elif (not strict) and offset[0] <= end <= offset[1]:
                 new_end = idx + 1
     if new_start == -1 or new_end == -1:
         raise ValueError('Sentence {} / {} Matching failed!')
@@ -193,7 +197,7 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end(offsets_mapping, asp
 
 
 
-def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping, triplets, aspect_sentiment_mapping, tokenized_label=False, origin_text=None):
+def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping, triplets, aspect_sentiment_mapping, tokenized_label=False, origin_text=None, strict=True):
     sentiment_label_mapping = {s: idx for idx, s in enumerate(aspect_sentiment_mapping['sentiments'])}    
     category_label_mapping = aspect_sentiment_mapping['category2index']
     num_aspects = len(category_label_mapping)
@@ -209,17 +213,16 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping,
             if tokenized_label:
                 new_start, new_end = format_tokenized_label(start, end)
             else:
-                new_start, new_end = infer_tokenized_label(start, end, offsets_mapping) 
+                new_start, new_end = infer_tokenized_label(start, end, offsets_mapping, strict=strict) 
 
             # create label
             cls_label[aspect_senti_idx] = 1
             if new_start == 0 and new_end == 1:
                 continue
             else:
-                if origin_text:
-                    # assert origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]] == triplet['target']
-                    if origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]] != triplet['target']:
-                        print(origin_text)
+                # if origin_text:
+                #     if origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]].strip() != triplet['target']:
+                        # print("{} || {} || {}".format(origin_text, origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]].strip(), triplet['target']))
                 if new_start + 1 == new_end:
                     assert ner_label[aspect_senti_idx][new_start] == NER_BIO_MAPPING['O']
                     ner_label[aspect_senti_idx][new_start] = NER_BIO_MAPPING['B']
