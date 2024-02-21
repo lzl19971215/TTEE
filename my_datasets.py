@@ -17,7 +17,8 @@ class BaseSemEvalDataSet(object):
     def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", tagging_schema="BIOES", drop_null=False, is_label_after_tokenized=False, neg_sample=-1, data_sample_ratio=-1):
         self.tokenizer = tokenizer
         tokenizer_type = type(tokenizer).__name__
-        self.is_strict = re.search('deberta', tokenizer_type.lower()) is None
+        self.is_strict = re.search('deberta|roberta', tokenizer_type.lower()) is None
+        self.has_token_type_ids = re.search('roberta', tokenizer_type.lower()) is None
         self.sentence_b = sentence_b
         # self.tree = ElementTree.parse(file_path)
         # self.root = self.tree.getroot()
@@ -301,11 +302,13 @@ class BaseSemEvalDataSet(object):
             ner_labels.append([ner_label])
             cls_labels.append([cls_label])
 
-        attention_mask = np.array(tokenized_texts['attention_mask'])
+        context_input_ids = np.array(tokenized_texts['input_ids'])
+        context_token_type_ids = np.array(tokenized_texts['token_type_ids']) if self.has_token_type_ids else np.zeros_like(context_input_ids, dtype=np.int32)
+        context_attention_mask = np.array(tokenized_texts['attention_mask'])
         all_ner_labels = np.concatenate(ner_labels, axis=0)
         all_cls_labels = np.concatenate(cls_labels, axis=0)
         aspect_senti_input_ids = np.array(aspect_senti_inputs['input_ids'])
-        aspect_senti_token_type_ids = np.array(aspect_senti_inputs['token_type_ids'])
+        aspect_senti_token_type_ids = np.array(aspect_senti_inputs['token_type_ids']) if self.has_token_type_ids else np.zeros_like(aspect_senti_input_ids, dtype=np.int32)
         aspect_senti_attention_mask = np.array(aspect_senti_inputs['attention_mask'])
 
         if self.neg_sample != -1:
@@ -319,9 +322,9 @@ class BaseSemEvalDataSet(object):
             
 
         text_inputs_list = [
-            np.array(tokenized_texts['input_ids']),
-            np.array(tokenized_texts['token_type_ids']),
-            attention_mask,
+            context_input_ids,
+            context_token_type_ids,
+            context_attention_mask,
             all_ner_labels,
             all_cls_labels
         ]
@@ -511,6 +514,9 @@ class ChineseDataset(BaseSemEvalDataSet):
 class TestTokenizer(object):
     def __init__(self, tokenizer, sentence_b, mask_sb=False, model_type="single_tower"):
         self.tokenizer = tokenizer
+        tokenizer_type = type(tokenizer).__name__
+        self.is_strict = re.search('deberta|roberta', tokenizer_type.lower()) is None
+        self.has_token_type_ids = re.search('roberta', tokenizer_type.lower()) is None
         self.sentence_b = sentence_b
 
         self.mask_sb = mask_sb
@@ -668,15 +674,15 @@ class TestTokenizer(object):
         else:
             raise ValueError("wrong length of aspect_texts list")           
 
-        attention_mask = np.array(tokenized_texts['attention_mask'])
-        attention_mask = np.repeat(attention_mask[:, np.newaxis, :], attention_mask.shape[1], axis=1).astype(np.int32)
-
+        attention_mask = np.array(tokenized_texts['attention_mask']).astype(np.int32)
+        context_input_ids = tf.constant(tokenized_texts['input_ids'])
+        aspect_input_ids = tf.constant(aspect_senti_inputs['input_ids'])
         result = {
-            "input_ids": tf.constant(tokenized_texts['input_ids']),
-            "token_type_ids": tf.constant(tokenized_texts['token_type_ids']),
+            "input_ids": context_input_ids,
+            "token_type_ids": tf.constant(tokenized_texts['token_type_ids']) if self.has_token_type_ids else tf.zeros_like(context_input_ids, dtype=tf.int32),
             "attention_mask": tf.constant(attention_mask),
-            "aspect_input_ids": tf.constant(aspect_senti_inputs['input_ids']),
-            "aspect_token_type_ids": tf.constant(aspect_senti_inputs['token_type_ids']),
+            "aspect_input_ids": aspect_input_ids,
+            "aspect_token_type_ids": tf.constant(aspect_senti_inputs['token_type_ids']) if self.has_token_type_ids else tf.zeros_like(aspect_input_ids, dtype=tf.int32),
             "aspect_attention_mask": tf.constant(aspect_senti_inputs['attention_mask']),
             "offset_mapping": tokenized_texts['offset_mapping']
         }
@@ -780,12 +786,12 @@ if __name__ == '__main__':
     from transformers import AutoTokenizer
     from itertools import chain
     # file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
-    file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
-    # file_path = ['data/semeval2015/ABSA-15_Restaurants_Train_Final.xml', 'data/semeval2015/ABSA15_Restaurants_Test.xml']
-    model_name = 'microsoft/deberta-base'
-    # model_name = 'bert-base-uncased'
+    # file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
+    file_path = ['data/semeval2015/ABSA-15_Restaurants_Train_Final.xml', 'data/semeval2015/ABSA15_Restaurants_Test.xml']
+    # model_name = 'FacebookAI/roberta-base'
+    # model_name="microsoft/deberta-v3-base"
+    model_name = 'bert-base-uncased'
     tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=f'bert_models/{os.path.basename(model_name)}')
-    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     # tokenizer = None
     for fp in file_path:
         print(fp)
@@ -808,14 +814,16 @@ if __name__ == '__main__':
             dataset.generate_string_sample,
             output_types=(tf.string, tf.string)
         )
-        # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
+        bd = ds.batch(batch_size=16).map(dataset.wrap_map)
+        # for each in bd:
+        #     pass
         for a, b in ds.batch(16):
             cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
             all_cls_labels.append(cls_labels)
-        # all_cls_labels = np.concatenate(all_cls_labels, axis=0)
-        # print(all_cls_labels.shape)
-        # p = all_cls_labels.sum() / all_cls_labels.size
-        # print("success to batch ", fp, p)
+        all_cls_labels = np.concatenate(all_cls_labels, axis=0)
+        print(all_cls_labels.shape)
+        p = all_cls_labels.sum() / all_cls_labels.size
+        print("success to batch ", fp, p)
     # input_ids = tokenizer(SENTENCE_B['text'], return_offsets_mapping=True, add_special_tokens=False)['input_ids']
     # tt = tokenizer.convert_ids_to_tokens(input_ids)
     

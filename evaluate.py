@@ -146,10 +146,10 @@ if __name__ == "__main__":
     res15_results = []
     res16_results = []
     laptop_results = []
-    output_dir = "../TTEE_output/output"
-    contains = ["ttee_res15_100epoch_512d_2aug_2e-5lr_5000decaystep_0.90decayrate_0.2dropout_0.2detect_dropout_1loss_BIO_ce_no_asp_batch_update"]
+    output_dir = "output"
+    contains = ["fix"]
     not_contains = []
-    re_evaluate = True
+    re_evaluate = False
     save_res = True
     def get_best_epoch_result_for_each_task(epoch, path):
         evaluator = MultiTaskEvaluatior(TASK_CONFIG, path)

@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
+import re
 from tensorflow import keras
 from transformers import TFAutoModel, AutoTokenizer
 from tensorflow_addons.text import crf_log_likelihood
@@ -191,6 +192,9 @@ class End2EndAspectSentimentModel(keras.models.Model):
         self.dropout = dropout
         self.bert = TFAutoModel.from_pretrained(init_bert_model, cache_dir=cache_dir)
         self.tokenizer = AutoTokenizer.from_pretrained(init_bert_model, cache_dir=cache_dir)
+        self.pad_token_id = self.tokenizer.pad_token_id
+        bert_type = type(self.bert).__name__.lower()
+        self.has_token_type_ids = re.search('roberta', bert_type) is None
         self.fuse_net = FuseNet(self.bert.config.hidden_size, fuse_strategy, dropout=dropout)
         n_te_classes = 5 if tagging_schema == "BIOES" else 3
         self.te_block = TargetExtractionBlock(hidden_size=subblock_hidden_size, num_classes=n_te_classes, dropout=dropout, block_output_activation=block_output_activation, block_inter_activation=block_inter_activation)
@@ -306,12 +310,19 @@ class End2EndAspectSentimentModel(keras.models.Model):
         flag = tf.reduce_sum(cache_text_states)
         # tf.print("flag: ", flag)
         if flag == 0:
-            bert_output = self.bert(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                token_type_ids=token_type_ids,
-                training=(phase == "train")
-            )
+            if self.has_token_type_ids:
+                bert_output = self.bert(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    token_type_ids=token_type_ids,
+                    training=(phase == "train")
+                )
+            else:
+                bert_output = self.bert(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    training=(phase == "train")
+                )
             # tf.print("re calculate")
             text_states = bert_output.last_hidden_state
         else:
@@ -320,46 +331,74 @@ class End2EndAspectSentimentModel(keras.models.Model):
         text_states.set_shape((None, None, self.d_model))
 
         if phase == "train":
-            asp_senti_output = self.bert(
-                input_ids=aspect_inputs[0],
-                token_type_ids=aspect_inputs[1],
-                attention_mask=aspect_inputs[2],
-                training=True
-            )
+            if self.has_token_type_ids:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    token_type_ids=aspect_inputs[1],
+                    attention_mask=aspect_inputs[2],
+                    training=True
+                )
+            else:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    attention_mask=aspect_inputs[2],
+                    training=True
+                )
             if hasattr(asp_senti_output, "pooler_output"):
                 asp_senti_cls_states = asp_senti_output.pooler_output
             else:
                 asp_senti_cls_states = asp_senti_output.last_hidden_state[:, 0, :]
             # self.asp_senti_cache.scatter_update(tf.IndexedSlices(asp_senti_cls_states, tf.range(asp_senti_batch_idx, asp_senti_batch_idx + tf.shape(asp_senti_cls_states)[0])))
         elif phase == "pretrain":
-            asp_senti_output = self.bert(
-                input_ids=aspect_inputs[0],
-                token_type_ids=aspect_inputs[1],
-                attention_mask=aspect_inputs[2],
-                training=True
-            )
+            if self.has_token_type_ids:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    token_type_ids=aspect_inputs[1],
+                    attention_mask=aspect_inputs[2],
+                    training=True
+                )
+            else:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    attention_mask=aspect_inputs[2],
+                    training=True
+                )
             if hasattr(asp_senti_output, "pooler_output"):
                 asp_senti_cls_states = asp_senti_output.pooler_output
             else:
                 asp_senti_cls_states = asp_senti_output.last_hidden_state[:, 0, :]
         elif phase == "dynamic_aspect_test":
-            asp_senti_output = self.bert(
-                input_ids=aspect_inputs[0],
-                token_type_ids=aspect_inputs[1],
-                attention_mask=aspect_inputs[2],
-                training=False
-            )
+            if self.has_token_type_ids:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    token_type_ids=aspect_inputs[1],
+                    attention_mask=aspect_inputs[2],
+                    training=False
+                )
+            else:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    attention_mask=aspect_inputs[2],
+                    training=False
+                )
             if hasattr(asp_senti_output, "pooler_output"):
                 asp_senti_cls_states = asp_senti_output.pooler_output
             else:
                 asp_senti_cls_states = asp_senti_output.last_hidden_state[:, 0, :]            
         elif (phase == "test" or phase == "valid") and not self.updated:
-            asp_senti_output = self.bert(
-                input_ids=aspect_inputs[0],
-                token_type_ids=aspect_inputs[1],
-                attention_mask=aspect_inputs[2],
-                training=False
-            )
+            if self.has_token_type_ids:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    token_type_ids=aspect_inputs[1],
+                    attention_mask=aspect_inputs[2],
+                    training=False
+                )
+            else:
+                asp_senti_output = self.bert(
+                    input_ids=aspect_inputs[0],
+                    attention_mask=aspect_inputs[2],
+                    training=False
+                )
             if hasattr(asp_senti_output, "pooler_output"):
                 asp_senti_cls_states = asp_senti_output.pooler_output
             else:
@@ -387,7 +426,7 @@ class End2EndAspectSentimentModel(keras.models.Model):
             hidden_size = tf.shape(fused_states)[2]
 
             # fused_states: (batch_size, seq_len, hidden_size)
-            crf_mask = input_ids != 0
+            crf_mask = input_ids != self.pad_token_id
         else:
             # get shape
             batch_size = tf.shape(fused_states)[0]
@@ -399,7 +438,7 @@ class End2EndAspectSentimentModel(keras.models.Model):
             fused_states = tf.reshape(fused_states, (-1, seq_len, hidden_size))
             # (batch_size * num_as_pairs, seq_len)
 
-            crf_mask = input_ids != 0
+            crf_mask = input_ids != self.pad_token_id
             crf_mask = tf.tile(crf_mask[:, tf.newaxis, :], [1, num_as_pairs, 1])
             crf_mask = tf.reshape(crf_mask, (-1, seq_len))
         self_attention_mask = tf.cast(crf_mask, tf.float32)[:, tf.newaxis, tf.newaxis, :]
@@ -530,7 +569,6 @@ if __name__ == '__main__':
     init_model = 'bert-base-cased'
     file_path = '../data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml'
     tokenizer = AutoTokenizer.from_pretrained('bert-base-cased', cache_dir=init_dir)
-    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     # dataset = SemEvalDataSet(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
     # ds = tf.data.Dataset.from_generator(
     #     dataset.generate_string_sample,

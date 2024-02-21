@@ -49,6 +49,9 @@ class Result(object):
             # result = []
             result = set()
             decoded_sequence = batch_decoded_sequence[i]
+            pad_pos = (np.array(tokenized_texts['input_ids'][i]) == self.tokenizer.pad_token_id).nonzero()[0]
+            seq_len = pad_pos[0] if len(pad_pos) else decoded_sequence.shape[-1]
+            decoded_sequence = decoded_sequence[:, :seq_len]
             output_prob = batch_output_prob[i]
             cls_predict = batch_cls_predict[i]
             decoded_dict = decode_ner_output(decoded_sequence) if tagging_schema == "BIOES" else decode_ner_BIO_output(decoded_sequence)

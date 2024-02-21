@@ -201,6 +201,8 @@ class ABSATrainer(object):
                     text_inputs = inputs[:3]
                     label_inputs = [each[:, start: end] for each in inputs[3:5]]
                     aspect_senti_inputs = [each[start: end] for each in inputs[5:]]
+                    # label_inputs = inputs[3: 5]
+                    # aspect_senti_inputs = inputs[5: ]
                     loss, acc, _ = self.model(
                         text_inputs=text_inputs,
                         aspect_inputs=aspect_senti_inputs,
@@ -497,6 +499,7 @@ class ABSATrainer(object):
                     end_time = time.time()
                     eval_time = (end_time - start_time) * n_steps / 20
                     break            
+            inputs = list(inputs)
             loss, acc = self.evaluate_step(inputs)
             loss_list.append([item.numpy() for item in loss])
             acc_list.append([item.numpy() for item in acc])
@@ -535,7 +538,7 @@ class ABSATrainer(object):
                 for j in j_list:
                     one_label.append(Triplet(j['target'], j['category'], j['polarity']))
                 true_result.append(set(one_label))
-
+            inputs = list(inputs)
             if self.model_type == "double_tower":
                 x_inputs = inputs[:4] + inputs[-3:]
                 labels = inputs[4:-3]
@@ -605,7 +608,6 @@ def prepare_modules(
 
     sentence_b = config['sentence_b']
     tokenizer = AutoTokenizer.from_pretrained(init_model, cache_dir=init_dir)
-    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     if args.pretrain:
         Dataset = PreTrainDataset
     elif lang == "en":
@@ -760,10 +762,6 @@ if __name__ == '__main__':
             test_data_path = "./data/Laptop-ACOS/processed_data/laptop_quad_test.tsv"
     else:
         train_data_path = "./data/semeval2016/phone_chinese/labeled_phone.csv"
-    # tokenizer = AutoTokenizer.from_pretrained(config['init_bert_model'], cache_dir=config['cache_dir'])
-    # tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    # test_dataset = SemEvalDataSet(test_path, tokenizer, config['sentence_b'], mask_sb=mask_sb,
-    #                               model_type=model_type)
     logger = logging.getLogger()
     prepare_logger(logger, level=logging.INFO, save_to_file=log_path)
     logger.info(args)

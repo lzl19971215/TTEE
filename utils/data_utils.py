@@ -222,7 +222,7 @@ def convert_batch_label_to_batch_tokenized_label_end_to_end_BIO(offsets_mapping,
             else:
                 # if origin_text:
                 #     if origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]].strip() != triplet['target']:
-                        # print("{} || {} || {}".format(origin_text, origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]].strip(), triplet['target']))
+                #         print("{} || {} || {}".format(origin_text, origin_text[offsets_mapping[new_start][0]: offsets_mapping[new_end - 1][1]].strip(), triplet['target']))
                 if new_start + 1 == new_end:
                     assert ner_label[aspect_senti_idx][new_start] == NER_BIO_MAPPING['O']
                     ner_label[aspect_senti_idx][new_start] = NER_BIO_MAPPING['B']
