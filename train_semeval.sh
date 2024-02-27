@@ -1,6 +1,6 @@
 export CUDA_VISIBLE_DEVICES=0
 export TF_CPP_MIN_LOG_LEVEL=2
-export TF_FORCE_GPU_ALLOW_GROWTH=true
+# export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 SAVE_DIR="checkpoint"
 
@@ -11,15 +11,18 @@ DETECT_LOSS="ce"
 FUSE_STRATEGY="gate"
 OUT_ACT="none"
 IN_ACT="relu"
-LR="2e-5"
+LR="5e-6"
 N_AUG="2"
 INIT_MODEL_DIR=""
+TRAIN_BATCH_SIZE=8
 
-PRETRAIN_MODELS="bert-base-uncased"
+# PRETRAIN_MODELS="bert-base-uncased bert-base-cased FacebookAI/roberta-base microsoft/deberta-v3-base"
+# PRETRAIN_MODELS="microsoft/deberta-v3-base"
+PRETRAIN_MODELS="bert-large-cased"
 for PRETRAIN_MODEL in ${PRETRAIN_MODELS};
 do
     PRETRAIN_MODEL_NAME=`basename ${PRETRAIN_MODEL}`
-    TASK_NAME="ttee_fix_${PRETRAIN_MODEL_NAME}_${DATASET}_${EPOCH}epoch_512d_${N_AUG}aug_${LR}lr_5000decaystep_0.90decayrate_0.2dropout_0.2detect_dropout_1loss_BIO_${DETECT_LOSS}_no_asp_batch_${FUSE_STRATEGY}_${OUT_ACT}outact_${IN_ACT}inact_debug"
+    TASK_NAME="ttee_fix_${PRETRAIN_MODEL_NAME}_${DATASET}_${EPOCH}epoch_${TRAIN_BATCH_SIZE}trainbs_512d_${N_AUG}aug_${LR}lr_5000decaystep_0.90decayrate_0.2dropout_0.2detect_dropout_1loss_BIO_${DETECT_LOSS}_no_asp_batch_${FUSE_STRATEGY}_${OUT_ACT}outact_${IN_ACT}inact_tf2.8"
     echo ${TASK_NAME}
     python train.py \
         --do_train \
@@ -37,7 +40,7 @@ do
         --detect_dropout_rate=0.2 \
         --valid_freq=1 \
         --test_freq=1 \
-        --train_batch_size=16 \
+        --train_batch_size="${TRAIN_BATCH_SIZE}" \
         --test_batch_size=32 \
         --aspect_senti_batch_size=-1 \
         --aspect_senti_test_batch_size=-1 \

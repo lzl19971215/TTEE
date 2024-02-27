@@ -607,7 +607,11 @@ def prepare_modules(
     init_model = config['init_bert_model']
 
     sentence_b = config['sentence_b']
-    tokenizer = AutoTokenizer.from_pretrained(init_model, cache_dir=init_dir)
+    # use_fast = False if 'deberta' in init_model.lower() else True
+    use_fast = True
+    logger.info("Using fast tokenizer: {}".format(use_fast))
+    tokenizer = AutoTokenizer.from_pretrained(init_model, cache_dir=init_dir, use_fast=use_fast)
+
     if args.pretrain:
         Dataset = PreTrainDataset
     elif lang == "en":

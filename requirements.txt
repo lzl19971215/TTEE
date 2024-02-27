@@ -1,3 +1,5 @@
-transformers==4.2.2
-tensorflow-addons==0.15.0
-tensorflow~=2.7.0
+transformers==4.37.2
+tensorflow-addons==0.18.0
+tensorflow==2.8.4
+sentencepiece=0.2.0
+pandas

@@ -131,11 +131,11 @@ class MultiTaskEvaluatior(object):
 
 
 TASK_CONFIG = {
-    "AS": ["aspect", "polarity"],
-    "TS": ["target", "polarity"],
-    "TA": ["target", "aspect"],
     "A": ["aspect"],
     "T": ["target"],
+    "TA": ["target", "aspect"],
+    "AS": ["aspect", "polarity"],
+    "TS": ["target", "polarity"],
     "TAS": ["target", "aspect", "polarity"],
     "TAS_Implicity_Only": ["target", "aspect", "polarity"],
     "Mixed_sentence": ["target", "aspect", "polarity"],
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     res16_results = []
     laptop_results = []
     output_dir = "output"
-    contains = ["fix"]
+    contains = ["res16", "fix"]
     not_contains = []
     re_evaluate = False
     save_res = True
