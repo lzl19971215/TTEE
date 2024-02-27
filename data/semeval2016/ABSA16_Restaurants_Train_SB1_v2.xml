@@ -9737,7 +9737,7 @@
                     <Opinion target="NULL" category="RESTAURANT#GENERAL" polarity="positive" from="0" to="0"/>
                     <Opinion target="NULL" category="AMBIENCE#GENERAL" polarity="positive" from="0" to="0"/>
                     <Opinion target="food" category="FOOD#QUALITY" polarity="positive" from="51" to="55"/>
-                    <Opinion target="NULL" category="RESTAURANT#MISCELLANEOUS" polarity="positive" from="27" to="31"/>
+                    <Opinion target="spot" category="RESTAURANT#MISCELLANEOUS" polarity="positive" from="27" to="31"/>
                 </Opinions>
             </sentence>
             <sentence id="TR#1:1">

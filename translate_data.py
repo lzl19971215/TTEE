@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     data_path = 'data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml'
     tokenizer = AutoTokenizer.from_pretrained('bert-base-cased', cache_dir='../models/bert-base-cased/')
-    sentence_b = ASPECT_SENTENCE
+    sentence_b = RES1516_LABEL_MAPPING
     mask_sb = True
     model_type = 'end_to_end'
     dataset = SemEvalDataSet(

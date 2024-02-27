@@ -138,3 +138,4 @@ bin/
 .idea/
 # data/
 output/
+nohup.out

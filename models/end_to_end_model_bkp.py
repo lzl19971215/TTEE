@@ -344,19 +344,19 @@ class End2EndAspectSentimentModel(Model):
 if __name__ == '__main__':
     import time
     from my_datasets import SemEvalDataSet, TestTokenizer
-    from label_mappings import SENTENCE_B, ASPECT_SENTENCE
+    from label_mappings import RES1516_LABEL_MAPPING
 
     init_dir = '/lzl/models/bert-base-cased'
     init_model = 'bert-base-cased'
     file_path = '../data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml'
     tokenizer = AutoTokenizer.from_pretrained('bert-base-cased', cache_dir=init_dir)
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    dataset = SemEvalDataSet(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
+    dataset = SemEvalDataSet(file_path, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end")
     ds = tf.data.Dataset.from_generator(
         dataset.generate_string_sample,
         output_types=(tf.string, tf.string)
     ).batch(batch_size=8).map(dataset.wrap_map)
-    model = End2EndAspectSentimentModel(init_bert_model=init_model, sentence_b=SENTENCE_B, cache_dir=init_dir)
+    model = End2EndAspectSentimentModel(init_bert_model=init_model, sentence_b=RES1516_LABEL_MAPPING, cache_dir=init_dir)
     for inputs in ds:
         text_inputs = inputs[:3]
         aspect_senti_inputs = inputs[-3:]

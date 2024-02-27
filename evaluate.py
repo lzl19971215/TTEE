@@ -31,27 +31,33 @@ class Task(object):
         self.labels = []
 
     def _json_to_result(self, jobj):
-        e = [jobj[k] for k in self.task_elements]
+        e = ["NULL" if jobj[k] is None else jobj[k] for k in self.task_elements]
         return self.Result(*e)
 
     def parse(self, context, predict, label):
         p_set = set(self._json_to_result(each) for each in predict)
         l_set = set(self._json_to_result(each) for each in label)
         if "Implicity" in self.task_name:
-            if "Implicity_Only" in self.task_name:
-                if all(each.target == "NULL" for each in l_set):
-                    self.contexts.append(context)
-                    self.predicts.append(p_set)
-                    self.labels.append(l_set)
-            else:
-                if any(each.target == "NULL" for each in l_set):
-                    self.contexts.append(context)
-                    self.predicts.append(p_set)
-                    self.labels.append(l_set)
-        else:
-            self.contexts.append(context)
-            self.predicts.append(p_set)
-            self.labels.append(l_set)
+            p_set = set(each for each in p_set if each.target == "NULL")
+            l_set = set(each for each in l_set if each.target == "NULL")
+            # if "Implicity_Only" in self.task_name:
+            #     if all(each.target == "NULL" for each in l_set):
+            #         self.contexts.append(context)
+            #         self.predicts.append(p_set)
+            #         self.labels.append(l_set)
+            # else:
+            #     if any(each.target == "NULL" for each in l_set):
+            #         self.contexts.append(context)
+            #         self.predicts.append(p_set)
+            #         self.labels.append(l_set)
+        # else:
+        elif "Mixed" in self.task_name:
+            if len(set((each.aspect, each.polarity) for each in l_set)) <= 1: 
+                return
+                
+        self.contexts.append(context)
+        self.predicts.append(p_set)
+        self.labels.append(l_set)
 
     def evaluate(self):
         return compute_f1(self.predicts, self.labels)
@@ -70,7 +76,7 @@ class MultiTaskEvaluatior(object):
         for name, elements in task_config.items():
             self.task_pools[name] = Task(name, elements)
 
-        files = sorted([fn for fn in os.listdir(output_dir) if fn.endswith(".json")], key=lambda x: int(re.match('epoch(\d+)_res16.json', x).group(1)))
+        files = sorted([fn for fn in os.listdir(output_dir) if fn.endswith(".json")], key=lambda x: int(re.match('epoch(\d+)_', x).group(1)))
         self.output_results = [json.load(open(os.path.join(output_dir, fn))) for fn in files]
         self.eval_results = {k: {"p": [], "r": [], "f1": []}
                              for k in task_config}
@@ -125,24 +131,33 @@ class MultiTaskEvaluatior(object):
 
 
 TASK_CONFIG = {
-    "AS": ["aspect", "polarity"],
-    "TS": ["target", "polarity"],
-    "TA": ["target", "aspect"],
     "A": ["aspect"],
     "T": ["target"],
+    "TA": ["target", "aspect"],
+    "AS": ["aspect", "polarity"],
+    "TS": ["target", "polarity"],
     "TAS": ["target", "aspect", "polarity"],
-    "TAS_Implicity": ["target", "aspect", "polarity"],
     "TAS_Implicity_Only": ["target", "aspect", "polarity"],
+    "Mixed_sentence": ["target", "aspect", "polarity"],
 }
+
 
 if __name__ == "__main__":
     res15_results = []
     res16_results = []
-    output_dir = "../TTEE_output/output"
-    contains = []
+    laptop_results = []
+    output_dir = "output"
+    contains = ["res16", "fix"]
     not_contains = []
     re_evaluate = False
-    save_res = False
+    save_res = True
+    def get_best_epoch_result_for_each_task(epoch, path):
+        evaluator = MultiTaskEvaluatior(TASK_CONFIG, path)
+        evaluator.parse(epoch - 1)
+        for task in TASK_CONFIG:
+            evaluator.eval(task)
+            print("{:<25} {}".format(task, evaluator.eval_results[task]))
+
     for exp in os.listdir(output_dir):
         if contains and not all(map(lambda x:x in exp, contains)):
             continue
@@ -152,19 +167,25 @@ if __name__ == "__main__":
         print(exp)
         if not re_evaluate and "eval_results.csv" in os.listdir(f"{output_dir}/{exp}"):
             df = pd.read_csv(f"{output_dir}/{exp}/eval_results.csv", index_col="Unnamed: 0")
+            get_best_epoch_result_for_each_task(df.loc["TAS", "epoch"], f"{output_dir}/{exp}")
             print(df)
             print()
-            res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
+            if "res15" in exp:
+                res15_results.append((exp,df)) 
+            elif "res16" in exp:
+                res16_results.append((exp,df))
+            elif "laptop" in exp:
+                laptop_results.append((exp,df))
             continue
         try:
             evaluator = MultiTaskEvaluatior(TASK_CONFIG, f"{output_dir}/{exp}")
             df = evaluator.full_evaluate(save_res)
+            get_best_epoch_result_for_each_task(df.loc["TAS", "epoch"], f"{output_dir}/{exp}")
             res15_results.append((exp,df)) if "res15" in exp else res16_results.append((exp,df))
         except Exception as e:
             print(e)
             print()
             continue
-    
 
 
     def get_best_score_each_task(results):
@@ -177,10 +198,15 @@ if __name__ == "__main__":
             v.sort(key=lambda x:x[0], reverse=True)
             print(f"{k}: Best f1:{v[0][0]}; Experiment:{v[0][1]}")
         return res
-    print("Res15:")
-    res15_scores = get_best_score_each_task(res15_results)
-    print("\nRes16:")
-    res16_scores = get_best_score_each_task(res16_results)
+    if len(res15_results):
+        print("Res15:")
+        res15_scores = get_best_score_each_task(res15_results)
+    if len(res16_results):
+        print("\nRes16:")
+        res16_scores = get_best_score_each_task(res16_results)
+    if len(laptop_results):
+        print("\nLaptop:")
+        res16_scores = get_best_score_each_task(laptop_results)
 
 
 

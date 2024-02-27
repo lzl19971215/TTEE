@@ -18,26 +18,28 @@ class Result(object):
         self.result = []
         self.tokenizer = tokenizer
 
-    def get_result(self, model_output, tokenized_texts, origin_texts, language, tagging_schema="BIOES", result_type="end_to_end"):
+    def get_result(self, model_output, tokenized_texts, origin_texts, label_mappings, tagging_schema="BIOES", result_type="end_to_end"):
         if result_type == "end_to_end":
-            return self.get_result_end_to_end(model_output, tokenized_texts, origin_texts, language, tagging_schema=tagging_schema)
+            return self.get_result_end_to_end(model_output, tokenized_texts, origin_texts, label_mappings, tagging_schema=tagging_schema)
         else:
-            return self.get_result_pipeline(model_output, tokenized_texts, origin_texts, language)
+            return self.get_result_pipeline(model_output, tokenized_texts, origin_texts, label_mappings)
 
-    def get_result_end_to_end(self, model_output, tokenized_texts, origin_texts, language, tagging_schema="BIOES"):
-        if language == "en":
-            label_category_mapping = LABEL_CATEGORY_MAPPING
-            label_sentiment_mapping = LABEL_SENTIMENT_MAPPING
-        else:
-            label_category_mapping = LABEL_CATEGORY_MAPPING_CHINESE
-            label_sentiment_mapping = LABEL_SENTIMENT_MAPPING_CHINESE
+    def get_result_end_to_end(self, model_output, tokenized_texts, origin_texts, label_mappings, tagging_schema="BIOES"):
+        # if language == "en":
+        #     label_category_mapping = LABEL_CATEGORY_MAPPING
+        #     label_sentiment_mapping = LABEL_SENTIMENT_MAPPING
+        # else:
+        #     label_category_mapping = LABEL_CATEGORY_MAPPING_CHINESE
+        #     label_sentiment_mapping = LABEL_SENTIMENT_MAPPING_CHINESE
+        label_category_mapping = {v: k for k, v in label_mappings['category2index'].items()}
+        label_sentiment_mapping = {v: k for v, k in enumerate(label_mappings['sentiments'])}
         # (batch_decoded_sequence, _), batch_cls_logits = model_output
         batch_decoded_sequence = model_output['decoded_sequence']
         batch_cls_logits = model_output['output_cls_states']
         batch_output_prob = softmax(model_output['output_logits'].numpy(), axis=-1)
         batch_decoded_sequence = batch_decoded_sequence.numpy()
         batch_cls_logits = batch_cls_logits.numpy()
-        batch_cls_predict = (batch_cls_logits > 0).astype(np.int32)
+        batch_cls_predict = (batch_cls_logits > 0.5).astype(np.int32)
 
         num_aspects = len(label_category_mapping)
         num_sentiments = len(label_sentiment_mapping)
@@ -47,6 +49,9 @@ class Result(object):
             # result = []
             result = set()
             decoded_sequence = batch_decoded_sequence[i]
+            pad_pos = (np.array(tokenized_texts['input_ids'][i]) == self.tokenizer.pad_token_id).nonzero()[0]
+            seq_len = pad_pos[0] if len(pad_pos) else decoded_sequence.shape[-1]
+            decoded_sequence = decoded_sequence[:, :seq_len]
             output_prob = batch_output_prob[i]
             cls_predict = batch_cls_predict[i]
             decoded_dict = decode_ner_output(decoded_sequence) if tagging_schema == "BIOES" else decode_ner_BIO_output(decoded_sequence)
@@ -67,7 +72,7 @@ class Result(object):
                     target_tag = decoded_sequence[asp_senti_idx][start: end]
                     target_prob = output_prob[asp_senti_idx][list(range(start, end)), target_tag]
                     avg_target_prob = np.mean(target_prob)
-                    target_text = origin_text[offset_mapping[start][0]: offset_mapping[end - 1][1]]
+                    target_text = origin_text[offset_mapping[start][0]: offset_mapping[end - 1][1]].strip()
                     result.add((Triplet(target_text, target_aspect, target_sentiment, avg_target_prob.item())))
             self.result.append(list(result))
         return self.result

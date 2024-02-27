@@ -1,19 +1,24 @@
 from collections import namedtuple
 import json
+import re
 import numpy as np
 import tensorflow as tf
 import pandas as pd
+import random
 from xml.etree import ElementTree
 from utils.data_utils import convert_batch_label_to_batch_tokenized_label, \
     convert_batch_label_to_batch_tokenized_label_end_to_end, convert_batch_label_to_batch_tokenized_label_end_to_end_BIO
-from label_mappings import SENTENCE_B, ASPECT_SENTENCE, ASPECT_SENTENCE_CHINESE, ASPECT_SENTENCE_ACOS_LAPTOP
+from label_mappings import RES1516_LABEL_MAPPING, ACOS_LAPTOP_LABEL_MAPPING
 from itertools import chain
 
 
 class BaseSemEvalDataSet(object):
 
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", tagging_schema="BIOES", drop_null=False, is_label_after_tokenized=False):
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, model_type="single_tower", tagging_schema="BIOES", drop_null=False, is_label_after_tokenized=False, neg_sample=-1, data_sample_ratio=-1):
         self.tokenizer = tokenizer
+        tokenizer_type = type(tokenizer).__name__
+        self.is_strict = re.search('deberta|roberta', tokenizer_type.lower()) is None
+        self.has_token_type_ids = re.search('roberta', tokenizer_type.lower()) is None
         self.sentence_b = sentence_b
         # self.tree = ElementTree.parse(file_path)
         # self.root = self.tree.getroot()
@@ -23,6 +28,8 @@ class BaseSemEvalDataSet(object):
         self.string_sentences = self.xml2list()
         if self.drop_null:
             self.string_sentences = [each for each in self.string_sentences if len(json.loads(each[1]))]
+        if data_sample_ratio != -1:
+            self.string_sentences = random.sample(self.string_sentences, int(data_sample_ratio * len(self.string_sentences)))
         self.mask_sb = mask_sb
         self.model_type = model_type
         self.is_label_after_tokenized = is_label_after_tokenized
@@ -32,6 +39,7 @@ class BaseSemEvalDataSet(object):
         elif self.model_type == "single_tower":
             self.sb_pos_ids = self._infer_sb_pos_ids()
         self.language = None
+        self.neg_sample = neg_sample
 
     def __getitem__(self, item):
         return self.string_sentences[item]
@@ -166,7 +174,7 @@ class BaseSemEvalDataSet(object):
             return_offsets_mapping=True
         )
         aspect_texts = self.tokenizer(
-            ASPECT_SENTENCE['texts'],
+            RES1516_LABEL_MAPPING['texts'],
             padding='longest',
             add_special_tokens=True,
             return_token_type_ids=True,
@@ -225,6 +233,36 @@ class BaseSemEvalDataSet(object):
         result[-5] = tf.where(result[0] == 0, -1, result[-5])
         return result + aspect_result
 
+    # def negative_sampling(self, labels, n_sample=32):
+    #     num_rows, _ = labels.shape
+    #     sampled_indices = []
+        
+    #     for i in range(num_rows):
+    #         positive_indices = np.where(labels[i] == 1)[0]
+    #         negative_indices = np.where(labels[i] == 0)[0]
+    #         assert len(positive_indices) < n_sample
+
+    #         chosen_indices = positive_indices
+    #         num_negatives_needed = n_sample - len(chosen_indices)
+    #         chosen_negative_indices = np.random.choice(negative_indices, size=num_negatives_needed, replace=False)
+    #         chosen_indices = np.concatenate((chosen_indices, chosen_negative_indices))
+            
+    #         # 打乱选择的索引，使正负样本混合
+    #         sampled_indices.append(chosen_indices)
+        
+    #     batch_index = np.repeat(np.arange(num_rows)[:, None], n_sample, axis=1)
+    #     return batch_index, np.array(sampled_indices)
+    def negative_sampling(self, labels, n_sample=36):
+        _, n_cols = labels.shape
+        positive_indices = np.unique(np.nonzero(labels)[1])
+        negative_indices = np.array([i for i in range(n_cols) if i not in positive_indices])
+        num_negatives_needed = n_sample - len(positive_indices) 
+        if num_negatives_needed <= 0:
+            return positive_indices
+        chosen_negative_indices = np.random.choice(negative_indices, size=num_negatives_needed, replace=False)
+        chosen_indices = np.concatenate((positive_indices, chosen_negative_indices))
+        return chosen_indices    
+
     def map_batch_string_to_tensor_end_to_end(self, text_tensor, triplet_tensor):
         batch_size = text_tensor.shape[0]
         origin_texts = [text.decode('utf-8') for text in text_tensor.numpy()]
@@ -253,9 +291,9 @@ class BaseSemEvalDataSet(object):
                 offsets_mapping=offsets_mapping,
                 triplets=triplet,
                 aspect_sentiment_mapping=self.sentence_b,
-                language=self.language,
                 tokenized_label=self.is_label_after_tokenized,
-                origin_text=origin_texts[i]
+                origin_text=origin_texts[i],
+                strict=self.is_strict
             )
 
             # one_position_ids = [i for i in range(max_len)]
@@ -264,20 +302,37 @@ class BaseSemEvalDataSet(object):
             ner_labels.append([ner_label])
             cls_labels.append([cls_label])
 
-        attention_mask = np.array(tokenized_texts['attention_mask'])
-        attention_mask = np.repeat(attention_mask[:, np.newaxis, :], attention_mask.shape[1], axis=1)
+        context_input_ids = np.array(tokenized_texts['input_ids'])
+        context_token_type_ids = np.array(tokenized_texts['token_type_ids']) if self.has_token_type_ids else np.zeros_like(context_input_ids, dtype=np.int32)
+        context_attention_mask = np.array(tokenized_texts['attention_mask'])
+        all_ner_labels = np.concatenate(ner_labels, axis=0)
+        all_cls_labels = np.concatenate(cls_labels, axis=0)
+        aspect_senti_input_ids = np.array(aspect_senti_inputs['input_ids'])
+        aspect_senti_token_type_ids = np.array(aspect_senti_inputs['token_type_ids']) if self.has_token_type_ids else np.zeros_like(aspect_senti_input_ids, dtype=np.int32)
+        aspect_senti_attention_mask = np.array(aspect_senti_inputs['attention_mask'])
+
+        if self.neg_sample != -1:
+            asp_senti_idx = self.negative_sampling(all_cls_labels, n_sample=self.neg_sample)
+            all_ner_labels = all_ner_labels[:, asp_senti_idx]
+            all_cls_labels = all_cls_labels[:, asp_senti_idx]
+            aspect_senti_input_ids = aspect_senti_input_ids[asp_senti_idx]
+            aspect_senti_token_type_ids = aspect_senti_token_type_ids[asp_senti_idx]
+            aspect_senti_attention_mask = aspect_senti_attention_mask[asp_senti_idx]
+
+            
+
         text_inputs_list = [
-            np.array(tokenized_texts['input_ids']),
-            np.array(tokenized_texts['token_type_ids']),
-            attention_mask,
-            np.concatenate(ner_labels, axis=0),
-            np.concatenate(cls_labels, axis=0),
+            context_input_ids,
+            context_token_type_ids,
+            context_attention_mask,
+            all_ner_labels,
+            all_cls_labels
         ]
 
         aspect_senti_inputs_list = [
-            np.array(aspect_senti_inputs['input_ids']),
-            np.array(aspect_senti_inputs['token_type_ids']),
-            np.array(aspect_senti_inputs['attention_mask'])
+            aspect_senti_input_ids,
+            aspect_senti_token_type_ids,
+            aspect_senti_attention_mask
         ]
 
         return text_inputs_list + aspect_senti_inputs_list
@@ -360,8 +415,8 @@ class BaseSemEvalDataSet(object):
 
 
 class EnglishDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
-        super(EnglishDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False, neg_sample=-1, data_sample_ratio=-1):
+        super(EnglishDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null, False, neg_sample, data_sample_ratio)
         self.language = "en"
 
     def xml2list(self):
@@ -391,9 +446,9 @@ class EnglishDataset(BaseSemEvalDataSet):
         return string_result
 
 class ACOSDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False, neg_sample=-1, data_sample_ratio=-1):
         self.Triplet = namedtuple('triplet', ['target', 'category', 'polarity', 'start', 'end'])
-        super(ACOSDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
+        super(ACOSDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null, is_label_after_tokenized=False, neg_sample=neg_sample, data_sample_ratio=data_sample_ratio)
         self.language = "en"
 
     
@@ -408,7 +463,7 @@ class ACOSDataset(BaseSemEvalDataSet):
                 for trip in trips:
                     items = trip.split()
                     start, end = items[0].split(',')
-                    target = None if start == end == '0' else text[int(start): int(end)]
+                    target = "NULL" if start == end == '0' else text[int(start): int(end)]
 
                     category = items[1]
                     polarity = items[2]
@@ -427,7 +482,7 @@ class ACOSDataset(BaseSemEvalDataSet):
         return string_result  
 
 class ChineseDataset(BaseSemEvalDataSet):
-    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False):
+    def __init__(self, file_path, tokenizer, sentence_b, mask_sb=False, tagging_schema="BIOES", model_type="end_to_end", drop_null=False, neg_sample=-1):
         super(ChineseDataset, self).__init__(file_path, tokenizer, sentence_b, mask_sb, model_type, tagging_schema, drop_null)
         self.language = "cn"
 
@@ -459,6 +514,9 @@ class ChineseDataset(BaseSemEvalDataSet):
 class TestTokenizer(object):
     def __init__(self, tokenizer, sentence_b, mask_sb=False, model_type="single_tower"):
         self.tokenizer = tokenizer
+        tokenizer_type = type(tokenizer).__name__
+        self.is_strict = re.search('deberta|roberta', tokenizer_type.lower()) is None
+        self.has_token_type_ids = re.search('roberta', tokenizer_type.lower()) is None
         self.sentence_b = sentence_b
 
         self.mask_sb = mask_sb
@@ -616,15 +674,15 @@ class TestTokenizer(object):
         else:
             raise ValueError("wrong length of aspect_texts list")           
 
-        attention_mask = np.array(tokenized_texts['attention_mask'])
-        attention_mask = np.repeat(attention_mask[:, np.newaxis, :], attention_mask.shape[1], axis=1).astype(np.int32)
-
+        attention_mask = np.array(tokenized_texts['attention_mask']).astype(np.int32)
+        context_input_ids = tf.constant(tokenized_texts['input_ids'])
+        aspect_input_ids = tf.constant(aspect_senti_inputs['input_ids'])
         result = {
-            "input_ids": tf.constant(tokenized_texts['input_ids']),
-            "token_type_ids": tf.constant(tokenized_texts['token_type_ids']),
+            "input_ids": context_input_ids,
+            "token_type_ids": tf.constant(tokenized_texts['token_type_ids']) if self.has_token_type_ids else tf.zeros_like(context_input_ids, dtype=tf.int32),
             "attention_mask": tf.constant(attention_mask),
-            "aspect_input_ids": tf.constant(aspect_senti_inputs['input_ids']),
-            "aspect_token_type_ids": tf.constant(aspect_senti_inputs['token_type_ids']),
+            "aspect_input_ids": aspect_input_ids,
+            "aspect_token_type_ids": tf.constant(aspect_senti_inputs['token_type_ids']) if self.has_token_type_ids else tf.zeros_like(aspect_input_ids, dtype=tf.int32),
             "aspect_attention_mask": tf.constant(aspect_senti_inputs['attention_mask']),
             "offset_mapping": tokenized_texts['offset_mapping']
         }
@@ -724,23 +782,48 @@ class PreTrainDataset(object):
         return result
 
 if __name__ == '__main__':
+    import os
     from transformers import AutoTokenizer
-    file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
-    tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', cache_dir='bert_models/bert-base-uncased')
-    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    # dataset = EnglishDataset(file_path, tokenizer, sentence_b=ASPECT_SENTENCE, model_type="end_to_end")
+    from itertools import chain
+    # file_path = ['data/Laptop-ACOS/processed_data/laptop_quad_train.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_dev.tsv', 'data/Laptop-ACOS/processed_data/laptop_quad_test.tsv']
+    # file_path = ['data/semeval2016/ABSA16_Restaurants_Train_SB1_v2.xml', 'data/semeval2016/EN_REST_SB1_TEST_LABELED.xml']
+    file_path = ['data/semeval2015/ABSA-15_Restaurants_Train_Final.xml', 'data/semeval2015/ABSA15_Restaurants_Test.xml']
+    # model_name = 'FacebookAI/roberta-base'
+    # model_name="microsoft/deberta-v3-base"
+    model_name = 'bert-base-uncased'
+    tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=f'bert_models/{os.path.basename(model_name)}')
     # tokenizer = None
     for fp in file_path:
-        dataset = ACOSDataset(fp, tokenizer, sentence_b=ASPECT_SENTENCE_ACOS_LAPTOP, model_type="end_to_end", tagging_schema="BIO")
+        print(fp)
+        all_cls_labels = []
+        # dataset = ACOSDataset(fp, tokenizer, sentence_b=ACOS_LAPTOP_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
+        # dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
+        # all_tuples = list(chain(*(json.loads(each[1]) for each in list(dataset.string_sentences))))
+        # all_sentences = list(dataset.string_sentences)
+        # n_implicit_tuples = sum([1 if each['target'] == "NULL" else 0 for each in all_tuples])
+        # n_mixed_sentences = 0
+        # for sent in all_sentences:
+        #     sent_jsons = json.loads(sent[1])
+        #     a_s_pairs = set((sent_json["category"], sent_json["polarity"]) for sent_json in sent_jsons)
+        #     if len(a_s_pairs) > 1:
+        #         n_mixed_sentences += 1 
+        # print(len(all_sentences), n_mixed_sentences, n_mixed_sentences / len(all_sentences), len(all_tuples), n_implicit_tuples, n_implicit_tuples / len(all_tuples))
         
+        dataset = EnglishDataset(fp, tokenizer, sentence_b=RES1516_LABEL_MAPPING, model_type="end_to_end", tagging_schema="BIO")
         ds = tf.data.Dataset.from_generator(
             dataset.generate_string_sample,
             output_types=(tf.string, tf.string)
         )
-        # bd = ds.batch(batch_size=8).map(dataset.wrap_map)
-        for a, b in ds.batch(32):
-            dataset.map_batch_string_to_tensor_end_to_end(a, b)
-        print("success to batch ", fp)
+        bd = ds.batch(batch_size=16).map(dataset.wrap_map)
+        # for each in bd:
+        #     pass
+        for a, b in ds.batch(16):
+            cls_labels = dataset.map_batch_string_to_tensor_end_to_end(a, b)[4]
+            all_cls_labels.append(cls_labels)
+        all_cls_labels = np.concatenate(all_cls_labels, axis=0)
+        print(all_cls_labels.shape)
+        p = all_cls_labels.sum() / all_cls_labels.size
+        print("success to batch ", fp, p)
     # input_ids = tokenizer(SENTENCE_B['text'], return_offsets_mapping=True, add_special_tokens=False)['input_ids']
     # tt = tokenizer.convert_ids_to_tokens(input_ids)
     
